@@ -1,10 +1,9 @@
 """Mock ThreatConnect v3 REST API -- the vendor side of a threat-feed ingest.
 
 Serves the surface the FortiSOAR ``threatconnect`` connector actually calls
-(the v2.1.0 ``operations.py``), over plain HTTP on the guest; Fabric Studio's
-HTTPS2HTTP reverse proxy fronts it with a browser-trusted cert at
-``https://<pod>:(16000+port_idx)``, so the SOAR connector can keep
-"Verify TLS" on.
+(``threatconnect/operations.py``), over plain HTTP. Put a TLS-terminating
+reverse proxy in front of it when a FortiSOAR needs to reach it with
+"Verify SSL" on.
 
 Endpoints (all JSON, every success carries ``status: "Success"``
 because the connector does ``result['status'].lower()`` on every reply and a
@@ -499,9 +498,9 @@ def main() -> int:
 
     rows = json.loads(Path(a.dataset).read_text())
     Handler.ds = Dataset(rows)
-    Handler.access_id = os.environ.get("TC_ACCESS_ID", "lab-access-id")
-    Handler.secret_key = os.environ.get("TC_SECRET_KEY", "lab-secret-key")
-    Handler.pat = os.environ.get("TC_PAT", "lab-pat")
+    Handler.access_id = os.environ.get("TC_ACCESS_ID", "test-access-id")
+    Handler.secret_key = os.environ.get("TC_SECRET_KEY", "test-secret-key")
+    Handler.pat = os.environ.get("TC_PAT", "test-pat")
     Handler.no_auth = a.no_auth
     total = Handler.ds.count()
 
@@ -521,7 +520,7 @@ def main() -> int:
           f"auth={'off' if a.no_auth else 'HMAC|Bearer'}, "
           f"grow={'every ' + str(a.grow_every) + 's' if a.grow_every else 'static'})",
           flush=True)
-    print("FSR connector config -> api_base_url: https://<pod>:(16000+idx) "
+    print("FSR connector config -> api_base_url: https://<proxy-host>:<port> "
           "(Verify TLS on), auth_type: 'HMAC (Access ID + Secret Key)', "
           "api_access_id: '<TC_ACCESS_ID>', api_secret_key: '<TC_SECRET_KEY>'",
           flush=True)
