@@ -242,7 +242,9 @@ def get_single_indicator(config, params):
     include_additional = params.get('includeAdditional')
     include_params = params.get('include_params') or []
     group_attributes = params.get('attributes', False)
-    endpoint = f'/api/v3/indicators/{indicator_value}'
+    # Encoded once, here: a value holding / ? # or & must stay one path segment and never
+    # reach the query string.
+    endpoint = '/api/v3/indicators/{0}'.format(_ident(indicator_value))
     owner = _owner(config, params)
     # Percent-encode the owner name the way TC's own docs example does
     # (``?Owner=Common%20Community``). quote() also handles the characters
@@ -262,9 +264,6 @@ def hunt_ip(config, params):
 
 
 def hunt_file(config, params):
-    indicator_value = params.get('indicator')
-    indicator_value = urllib.parse.quote(indicator_value)
-    params.update({'indicator': indicator_value})
     return get_single_indicator(config, params)
 
 
@@ -273,9 +272,6 @@ def hunt_email(config, params):
 
 
 def hunt_url(config, params):
-    indicator_value = params.get('indicator')
-    indicator_value = urllib.parse.quote_plus(indicator_value)
-    params.update({'indicator': indicator_value})
     return get_single_indicator(config, params)
 
 

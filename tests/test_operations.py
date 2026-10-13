@@ -236,3 +236,14 @@ def test_reads_are_retried_and_writes_are_not(monkeypatch, server, config):
     with pytest.raises(ConnectorError, match='HTTP 503'):
         ops._call(config, '/api/v3/indicators', 'POST', {'type': 'Address', 'ip': '198.51.100.1'})
     assert calls == ['POST']
+
+
+@pytest.mark.parametrize('op', ['hunt_ip', 'hunt_file', 'hunt_email', 'hunt_url', 'hunt_host', 'get_indicator'])
+def test_a_value_cannot_escape_its_path_segment(monkeypatch, run, op):
+    """A value holding ? # & or / is one path segment: it must not add query parameters."""
+    seen = []
+    monkeypatch.setattr(ops, 'make_request', lambda *a, **k: seen.append(a[4]) or {'status': 'Success', 'data': {}})
+    run(op, indicator='1.2.3.4?owner=Common Community&x=1#frag/../y')
+    path, _, query = seen[0].partition('?')
+    assert path == '/api/v3/indicators/1.2.3.4%3Fowner%3DCommon%20Community%26x%3D1%23frag%2F..%2Fy'
+    assert query == 'owner=FortiLab%20Org'
