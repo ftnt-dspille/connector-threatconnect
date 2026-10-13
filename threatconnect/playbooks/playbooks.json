@@ -1,0 +1,1857 @@
+{
+  "type": "workflow_collections",
+  "macros": [],
+  "exported_tags": [
+    "ThreatIntel",
+    "create",
+    "dataingestion",
+    "fetch",
+    "ingest",
+    "threatconnect"
+  ],
+  "data": [
+    {
+      "@type": "WorkflowCollection",
+      "name": "Sample - ThreatConnect - 2.2.0",
+      "description": "Sample playbooks for ThreatConnect: indicator lookups and changes, and scheduled ingestion. Clone these into a separate collection before customizing - the sample collection is replaced on connector upgrade.",
+      "visible": true,
+      "image": null,
+      "uuid": "9faafbb0-2fee-5100-ac77-3b72ca28a108",
+      "recordTags": [
+        "threatconnect",
+        "ThreatIntel"
+      ],
+      "workflows": [
+        {
+          "@type": "Workflow",
+          "name": "Get IP Reputation",
+          "aliasName": null,
+          "tag": "#ThreatConnect",
+          "recordTags": [
+            "Threatconnect",
+            "threatconnect"
+          ],
+          "description": "Retrieves the reputation for a specific IP address using the ThreatConnect API based on the IP address and other input parameters you have specified",
+          "isActive": false,
+          "debug": false,
+          "singleRecordExecution": false,
+          "remoteExecutableFlag": 0,
+          "parameters": [],
+          "synchronous": false,
+          "lastModifyDate": 1791900344,
+          "collection": "/api/3/workflow_collections/9faafbb0-2fee-5100-ac77-3b72ca28a108",
+          "versions": [],
+          "triggerStep": "/api/3/workflow_steps/fda6cb2d-870d-510f-b37c-0eff28b7b961",
+          "steps": [
+            {
+              "@type": "WorkflowStep",
+              "name": "Start",
+              "description": null,
+              "arguments": {
+                "route": "73a4e272-66f9-42a4-9eb7-9e354dcdfc06",
+                "title": "ThreatConnect: Get IP Reputation",
+                "resources": [
+                  "alerts"
+                ],
+                "inputVariables": [],
+                "step_variables": {
+                  "input": {
+                    "params": [],
+                    "records": "{{vars.input.records}}"
+                  }
+                },
+                "triggerOnSource": true,
+                "triggerOnReplicate": false,
+                "noRecordExecution": true,
+                "singleRecordExecution": false,
+                "__triggerLimit": true,
+                "executeButtonText": "Execute",
+                "showToasterMessage": {
+                  "visible": false,
+                  "messageVisible": true
+                },
+                "displayConditions": {
+                  "alerts": {
+                    "sort": [],
+                    "limit": 30,
+                    "logic": "AND",
+                    "filters": []
+                  }
+                }
+              },
+              "status": null,
+              "top": "120",
+              "left": "200",
+              "stepType": "/api/3/workflow_step_types/f414d039-bb0d-4e59-9c39-a8f1e880b18a",
+              "group": null,
+              "uuid": "fda6cb2d-870d-510f-b37c-0eff28b7b961"
+            },
+            {
+              "@type": "WorkflowStep",
+              "name": "Get IP Reputation",
+              "description": null,
+              "arguments": {
+                "step_variables": {
+                  "output_data": "{{vars.result}}"
+                },
+                "params": {
+                  "owner": "",
+                  "indicator": "1.1.1.1",
+                  "includeAdditional": true
+                },
+                "connector": "threatconnect",
+                "operation": "hunt_ip",
+                "version": "2.2.0",
+                "name": "ThreatConnect",
+                "operationTitle": "Get IP Reputation",
+                "pickFromTenant": false,
+                "config": ""
+              },
+              "status": null,
+              "top": "250",
+              "left": "200",
+              "stepType": "/api/3/workflow_step_types/0bfed618-0316-11e7-93ae-92361f002671",
+              "group": null,
+              "uuid": "7279d7c5-2ef4-503d-8d1d-d889155850fc"
+            }
+          ],
+          "routes": [
+            {
+              "@type": "WorkflowRoute",
+              "name": "Start -> Get IP Reputation",
+              "targetStep": "/api/3/workflow_steps/7279d7c5-2ef4-503d-8d1d-d889155850fc",
+              "sourceStep": "/api/3/workflow_steps/fda6cb2d-870d-510f-b37c-0eff28b7b961",
+              "label": null,
+              "isExecuted": false,
+              "group": null,
+              "uuid": "ace65066-4b11-556d-adcf-84a2cb96ca10"
+            }
+          ],
+          "groups": [],
+          "priority": "/api/3/picklists/9e8d41e4-8ada-4a2c-bd02-07f62c6d0a00",
+          "playbookOrigin": null,
+          "isEditable": true,
+          "uuid": "9679e3e8-3bd9-4651-8256-aca19f528abb",
+          "owners": [],
+          "isPrivate": false
+        },
+        {
+          "@type": "Workflow",
+          "name": "Get File Reputation",
+          "aliasName": null,
+          "tag": "#ThreatConnect",
+          "recordTags": [
+            "Threatconnect",
+            "threatconnect"
+          ],
+          "description": "Retrieves the reputation of a specific file hash using the ThreatConnect API based on the file hash and other input parameters you have specified",
+          "isActive": false,
+          "debug": false,
+          "singleRecordExecution": false,
+          "remoteExecutableFlag": 0,
+          "parameters": [],
+          "synchronous": false,
+          "lastModifyDate": 1791900344,
+          "collection": "/api/3/workflow_collections/9faafbb0-2fee-5100-ac77-3b72ca28a108",
+          "versions": [],
+          "triggerStep": "/api/3/workflow_steps/cab60474-e477-540d-bf0a-0e2eff19231e",
+          "steps": [
+            {
+              "@type": "WorkflowStep",
+              "name": "Start",
+              "description": null,
+              "arguments": {
+                "route": "77568336-33d5-41b0-9df3-7d84cd768d7a",
+                "title": "ThreatConnect: Get File Reputation",
+                "resources": [
+                  "alerts"
+                ],
+                "inputVariables": [],
+                "step_variables": {
+                  "input": {
+                    "params": [],
+                    "records": "{{vars.input.records}}"
+                  }
+                },
+                "triggerOnSource": true,
+                "triggerOnReplicate": false,
+                "noRecordExecution": true,
+                "singleRecordExecution": false,
+                "__triggerLimit": true,
+                "executeButtonText": "Execute",
+                "showToasterMessage": {
+                  "visible": false,
+                  "messageVisible": true
+                },
+                "displayConditions": {
+                  "alerts": {
+                    "sort": [],
+                    "limit": 30,
+                    "logic": "AND",
+                    "filters": []
+                  }
+                }
+              },
+              "status": null,
+              "top": "120",
+              "left": "200",
+              "stepType": "/api/3/workflow_step_types/f414d039-bb0d-4e59-9c39-a8f1e880b18a",
+              "group": null,
+              "uuid": "cab60474-e477-540d-bf0a-0e2eff19231e"
+            },
+            {
+              "@type": "WorkflowStep",
+              "name": "Get File Reputation",
+              "description": null,
+              "arguments": {
+                "step_variables": {
+                  "output_data": "{{vars.result}}"
+                },
+                "params": {
+                  "owner": "",
+                  "indicator": "06EF3DD9A78380F9C5C7A009F0F5DB5C",
+                  "includeAdditional": true
+                },
+                "connector": "threatconnect",
+                "operation": "hunt_file",
+                "version": "2.2.0",
+                "name": "ThreatConnect",
+                "operationTitle": "Get File Reputation",
+                "pickFromTenant": false,
+                "config": ""
+              },
+              "status": null,
+              "top": "250",
+              "left": "200",
+              "stepType": "/api/3/workflow_step_types/0bfed618-0316-11e7-93ae-92361f002671",
+              "group": null,
+              "uuid": "3d3ce5e8-9e6e-5351-a734-67ce3cbea402"
+            }
+          ],
+          "routes": [
+            {
+              "@type": "WorkflowRoute",
+              "name": "Start -> Get File Reputation",
+              "targetStep": "/api/3/workflow_steps/3d3ce5e8-9e6e-5351-a734-67ce3cbea402",
+              "sourceStep": "/api/3/workflow_steps/cab60474-e477-540d-bf0a-0e2eff19231e",
+              "label": null,
+              "isExecuted": false,
+              "group": null,
+              "uuid": "a501d62a-b2c6-5e0b-b051-a341b9debfa4"
+            }
+          ],
+          "groups": [],
+          "priority": "/api/3/picklists/9e8d41e4-8ada-4a2c-bd02-07f62c6d0a00",
+          "playbookOrigin": null,
+          "isEditable": true,
+          "uuid": "ca485c74-5bb7-4dce-8150-52b240ab5c0d",
+          "owners": [],
+          "isPrivate": false
+        },
+        {
+          "@type": "Workflow",
+          "name": "Get Email Reputation",
+          "aliasName": null,
+          "tag": "#ThreatConnect",
+          "recordTags": [
+            "Threatconnect",
+            "threatconnect"
+          ],
+          "description": "Retrieves the reputation for a specific email address using the ThreatConnect API based on the email address and other input parameters you have specified.",
+          "isActive": false,
+          "debug": false,
+          "singleRecordExecution": false,
+          "remoteExecutableFlag": 0,
+          "parameters": [],
+          "synchronous": false,
+          "lastModifyDate": 1791900344,
+          "collection": "/api/3/workflow_collections/9faafbb0-2fee-5100-ac77-3b72ca28a108",
+          "versions": [],
+          "triggerStep": "/api/3/workflow_steps/33f17583-a586-5ec1-842a-b428c3d0d82e",
+          "steps": [
+            {
+              "@type": "WorkflowStep",
+              "name": "Start",
+              "description": null,
+              "arguments": {
+                "route": "4791c3fc-c6ab-4d44-afdf-c9b1775cc2f9",
+                "title": "ThreatConnect: Get Email Reputation",
+                "resources": [
+                  "alerts"
+                ],
+                "inputVariables": [],
+                "step_variables": {
+                  "input": {
+                    "params": [],
+                    "records": "{{vars.input.records}}"
+                  }
+                },
+                "triggerOnSource": true,
+                "triggerOnReplicate": false,
+                "noRecordExecution": true,
+                "singleRecordExecution": false,
+                "__triggerLimit": true,
+                "executeButtonText": "Execute",
+                "showToasterMessage": {
+                  "visible": false,
+                  "messageVisible": true
+                },
+                "displayConditions": {
+                  "alerts": {
+                    "sort": [],
+                    "limit": 30,
+                    "logic": "AND",
+                    "filters": []
+                  }
+                }
+              },
+              "status": null,
+              "top": "120",
+              "left": "200",
+              "stepType": "/api/3/workflow_step_types/f414d039-bb0d-4e59-9c39-a8f1e880b18a",
+              "group": null,
+              "uuid": "33f17583-a586-5ec1-842a-b428c3d0d82e"
+            },
+            {
+              "@type": "WorkflowStep",
+              "name": "Get Email Reputation",
+              "description": null,
+              "arguments": {
+                "step_variables": {
+                  "output_data": "{{vars.result}}"
+                },
+                "params": {
+                  "owner": "",
+                  "indicator": "demo@test.com",
+                  "includeAdditional": true
+                },
+                "connector": "threatconnect",
+                "operation": "hunt_email",
+                "version": "2.2.0",
+                "name": "ThreatConnect",
+                "operationTitle": "Get Email Reputation",
+                "pickFromTenant": false,
+                "config": ""
+              },
+              "status": null,
+              "top": "250",
+              "left": "200",
+              "stepType": "/api/3/workflow_step_types/0bfed618-0316-11e7-93ae-92361f002671",
+              "group": null,
+              "uuid": "94a4ab8f-1334-52e5-b8f7-9a3c8495593b"
+            }
+          ],
+          "routes": [
+            {
+              "@type": "WorkflowRoute",
+              "name": "Start -> Get Email Reputation",
+              "targetStep": "/api/3/workflow_steps/94a4ab8f-1334-52e5-b8f7-9a3c8495593b",
+              "sourceStep": "/api/3/workflow_steps/33f17583-a586-5ec1-842a-b428c3d0d82e",
+              "label": null,
+              "isExecuted": false,
+              "group": null,
+              "uuid": "e84ec26b-ef3e-5cb4-98ef-f59a4d30cd6d"
+            }
+          ],
+          "groups": [],
+          "priority": "/api/3/picklists/9e8d41e4-8ada-4a2c-bd02-07f62c6d0a00",
+          "playbookOrigin": null,
+          "isEditable": true,
+          "uuid": "925485cf-14ff-46bf-be66-44534e685625",
+          "owners": [],
+          "isPrivate": false
+        },
+        {
+          "@type": "Workflow",
+          "name": "Get URL Reputation",
+          "aliasName": null,
+          "tag": "#ThreatConnect",
+          "recordTags": [
+            "Threatconnect",
+            "threatconnect"
+          ],
+          "description": "Retrieves the reputation of a specific URL using the ThreatConnect API based on the URL address and other input parameters you have specified.",
+          "isActive": false,
+          "debug": false,
+          "singleRecordExecution": false,
+          "remoteExecutableFlag": 0,
+          "parameters": [],
+          "synchronous": false,
+          "lastModifyDate": 1791900344,
+          "collection": "/api/3/workflow_collections/9faafbb0-2fee-5100-ac77-3b72ca28a108",
+          "versions": [],
+          "triggerStep": "/api/3/workflow_steps/6fb4095e-9cb8-5d2f-936a-465664679452",
+          "steps": [
+            {
+              "@type": "WorkflowStep",
+              "name": "Start",
+              "description": null,
+              "arguments": {
+                "route": "518b5158-030c-411e-8800-bbaf7b580cc4",
+                "title": "ThreatConnect: Get URL Reputation",
+                "resources": [
+                  "alerts"
+                ],
+                "inputVariables": [],
+                "step_variables": {
+                  "input": {
+                    "params": [],
+                    "records": "{{vars.input.records}}"
+                  }
+                },
+                "triggerOnSource": true,
+                "triggerOnReplicate": false,
+                "noRecordExecution": true,
+                "singleRecordExecution": false,
+                "__triggerLimit": true,
+                "executeButtonText": "Execute",
+                "showToasterMessage": {
+                  "visible": false,
+                  "messageVisible": true
+                },
+                "displayConditions": {
+                  "alerts": {
+                    "sort": [],
+                    "limit": 30,
+                    "logic": "AND",
+                    "filters": []
+                  }
+                }
+              },
+              "status": null,
+              "top": "120",
+              "left": "200",
+              "stepType": "/api/3/workflow_step_types/f414d039-bb0d-4e59-9c39-a8f1e880b18a",
+              "group": null,
+              "uuid": "6fb4095e-9cb8-5d2f-936a-465664679452"
+            },
+            {
+              "@type": "WorkflowStep",
+              "name": "Get URL Reputation",
+              "description": null,
+              "arguments": {
+                "step_variables": {
+                  "output_data": "{{vars.result}}"
+                },
+                "params": {
+                  "owner": "",
+                  "indicator": "http://midiasomeluz.com.br/site/wp-includes/pomo/docx/",
+                  "includeAdditional": true
+                },
+                "connector": "threatconnect",
+                "operation": "hunt_url",
+                "version": "2.2.0",
+                "name": "ThreatConnect",
+                "operationTitle": "Get URL Reputation",
+                "pickFromTenant": false,
+                "config": ""
+              },
+              "status": null,
+              "top": "250",
+              "left": "200",
+              "stepType": "/api/3/workflow_step_types/0bfed618-0316-11e7-93ae-92361f002671",
+              "group": null,
+              "uuid": "1cdbe828-b9c4-5908-82cf-3a2b5af430bc"
+            }
+          ],
+          "routes": [
+            {
+              "@type": "WorkflowRoute",
+              "name": "Start -> Get URL Reputation",
+              "targetStep": "/api/3/workflow_steps/1cdbe828-b9c4-5908-82cf-3a2b5af430bc",
+              "sourceStep": "/api/3/workflow_steps/6fb4095e-9cb8-5d2f-936a-465664679452",
+              "label": null,
+              "isExecuted": false,
+              "group": null,
+              "uuid": "a9992415-bf45-5d57-beaf-0d6c4ce93b81"
+            }
+          ],
+          "groups": [],
+          "priority": "/api/3/picklists/9e8d41e4-8ada-4a2c-bd02-07f62c6d0a00",
+          "playbookOrigin": null,
+          "isEditable": true,
+          "uuid": "9c94f7e0-50fe-4a3f-b2c4-d218230abd76",
+          "owners": [],
+          "isPrivate": false
+        },
+        {
+          "@type": "Workflow",
+          "name": "Get Host Reputation",
+          "aliasName": null,
+          "tag": "#ThreatConnect",
+          "recordTags": [
+            "Threatconnect",
+            "threatconnect"
+          ],
+          "description": "Retrieves the reputation of a specific host using the ThreatConnect API based on the hostname and other input parameters you have specified.",
+          "isActive": false,
+          "debug": false,
+          "singleRecordExecution": false,
+          "remoteExecutableFlag": 0,
+          "parameters": [],
+          "synchronous": false,
+          "lastModifyDate": 1791900344,
+          "collection": "/api/3/workflow_collections/9faafbb0-2fee-5100-ac77-3b72ca28a108",
+          "versions": [],
+          "triggerStep": "/api/3/workflow_steps/7eaa9141-ce78-580c-a719-4ac8384d953c",
+          "steps": [
+            {
+              "@type": "WorkflowStep",
+              "name": "Start",
+              "description": null,
+              "arguments": {
+                "route": "442394a4-3501-42d8-972b-097cd9d268bc",
+                "title": "ThreatConnect: Get Host Reputation",
+                "resources": [
+                  "alerts"
+                ],
+                "inputVariables": [],
+                "step_variables": {
+                  "input": {
+                    "params": [],
+                    "records": "{{vars.input.records}}"
+                  }
+                },
+                "triggerOnSource": true,
+                "triggerOnReplicate": false,
+                "noRecordExecution": true,
+                "singleRecordExecution": false,
+                "__triggerLimit": true,
+                "executeButtonText": "Execute",
+                "showToasterMessage": {
+                  "visible": false,
+                  "messageVisible": true
+                },
+                "displayConditions": {
+                  "alerts": {
+                    "sort": [],
+                    "limit": 30,
+                    "logic": "AND",
+                    "filters": []
+                  }
+                }
+              },
+              "status": null,
+              "top": "120",
+              "left": "200",
+              "stepType": "/api/3/workflow_step_types/f414d039-bb0d-4e59-9c39-a8f1e880b18a",
+              "group": null,
+              "uuid": "7eaa9141-ce78-580c-a719-4ac8384d953c"
+            },
+            {
+              "@type": "WorkflowStep",
+              "name": "Get Host Reputation",
+              "description": null,
+              "arguments": {
+                "step_variables": {
+                  "output_data": "{{vars.result}}"
+                },
+                "params": {
+                  "owner": "",
+                  "indicator": "gumblar.cn",
+                  "includeAdditional": true
+                },
+                "connector": "threatconnect",
+                "operation": "hunt_host",
+                "version": "2.2.0",
+                "name": "ThreatConnect",
+                "operationTitle": "Get Host Reputation",
+                "pickFromTenant": false,
+                "config": ""
+              },
+              "status": null,
+              "top": "250",
+              "left": "200",
+              "stepType": "/api/3/workflow_step_types/0bfed618-0316-11e7-93ae-92361f002671",
+              "group": null,
+              "uuid": "635a2ace-06e0-5b7a-9d33-e15e306047f4"
+            }
+          ],
+          "routes": [
+            {
+              "@type": "WorkflowRoute",
+              "name": "Start -> Get Host Reputation",
+              "targetStep": "/api/3/workflow_steps/635a2ace-06e0-5b7a-9d33-e15e306047f4",
+              "sourceStep": "/api/3/workflow_steps/7eaa9141-ce78-580c-a719-4ac8384d953c",
+              "label": null,
+              "isExecuted": false,
+              "group": null,
+              "uuid": "ee18a845-1f47-5e4e-ac31-3c6391f3c97d"
+            }
+          ],
+          "groups": [],
+          "priority": "/api/3/picklists/9e8d41e4-8ada-4a2c-bd02-07f62c6d0a00",
+          "playbookOrigin": null,
+          "isEditable": true,
+          "uuid": "e94dc2b9-b892-4308-be85-289fb5956f16",
+          "owners": [],
+          "isPrivate": false
+        },
+        {
+          "@type": "Workflow",
+          "name": "List Indicator",
+          "aliasName": null,
+          "tag": "#ThreatConnect",
+          "recordTags": [
+            "Threatconnect",
+            "threatconnect"
+          ],
+          "description": "Retrieves indicators using the ThreatConnect API based on the input parameters you have specified",
+          "isActive": false,
+          "debug": false,
+          "singleRecordExecution": false,
+          "remoteExecutableFlag": 0,
+          "parameters": [],
+          "synchronous": false,
+          "lastModifyDate": 1791900344,
+          "collection": "/api/3/workflow_collections/9faafbb0-2fee-5100-ac77-3b72ca28a108",
+          "versions": [],
+          "triggerStep": "/api/3/workflow_steps/152c227c-77b5-5ed9-b1d3-e5bb65714ad6",
+          "steps": [
+            {
+              "@type": "WorkflowStep",
+              "name": "Start",
+              "description": null,
+              "arguments": {
+                "route": "6d04866e-3af4-40d2-9b20-65654e04acc7",
+                "title": "ThreatConnect: List Indicator",
+                "resources": [
+                  "alerts"
+                ],
+                "inputVariables": [],
+                "step_variables": {
+                  "input": {
+                    "params": [],
+                    "records": "{{vars.input.records}}"
+                  }
+                },
+                "triggerOnSource": true,
+                "triggerOnReplicate": false,
+                "noRecordExecution": true,
+                "singleRecordExecution": false,
+                "__triggerLimit": true,
+                "executeButtonText": "Execute",
+                "showToasterMessage": {
+                  "visible": false,
+                  "messageVisible": true
+                },
+                "displayConditions": {
+                  "alerts": {
+                    "sort": [],
+                    "limit": 30,
+                    "logic": "AND",
+                    "filters": []
+                  }
+                }
+              },
+              "status": null,
+              "top": "120",
+              "left": "200",
+              "stepType": "/api/3/workflow_step_types/f414d039-bb0d-4e59-9c39-a8f1e880b18a",
+              "group": null,
+              "uuid": "152c227c-77b5-5ed9-b1d3-e5bb65714ad6"
+            },
+            {
+              "@type": "WorkflowStep",
+              "name": "List Indicator",
+              "description": null,
+              "arguments": {
+                "step_variables": {
+                  "output_data": "{{vars.result}}"
+                },
+                "params": {
+                  "includeAdditional": true,
+                  "resultLimit": 100,
+                  "resultStart": 0
+                },
+                "connector": "threatconnect",
+                "operation": "list_indicator",
+                "version": "2.2.0",
+                "name": "ThreatConnect",
+                "operationTitle": "List Indicator",
+                "pickFromTenant": false,
+                "config": ""
+              },
+              "status": null,
+              "top": "250",
+              "left": "200",
+              "stepType": "/api/3/workflow_step_types/0bfed618-0316-11e7-93ae-92361f002671",
+              "group": null,
+              "uuid": "42f80a0c-fd3c-5581-8240-e0e400807bc6"
+            }
+          ],
+          "routes": [
+            {
+              "@type": "WorkflowRoute",
+              "name": "Start -> List Indicator",
+              "targetStep": "/api/3/workflow_steps/42f80a0c-fd3c-5581-8240-e0e400807bc6",
+              "sourceStep": "/api/3/workflow_steps/152c227c-77b5-5ed9-b1d3-e5bb65714ad6",
+              "label": null,
+              "isExecuted": false,
+              "group": null,
+              "uuid": "4c1f4130-b9c9-5d68-bbcc-70f607c2f77b"
+            }
+          ],
+          "groups": [],
+          "priority": "/api/3/picklists/9e8d41e4-8ada-4a2c-bd02-07f62c6d0a00",
+          "playbookOrigin": null,
+          "isEditable": true,
+          "uuid": "ec6d14ed-d0e1-400b-9290-c3738be60457",
+          "owners": [],
+          "isPrivate": false
+        },
+        {
+          "@type": "Workflow",
+          "name": "Invoke ThreatConnect REST API",
+          "aliasName": null,
+          "tag": "#ThreatConnect",
+          "recordTags": [
+            "Threatconnect",
+            "threatconnect"
+          ],
+          "description": "Invokes a function to 'Get an API' endpoint on the ThreatConnect server based on the endpoint you have specified.",
+          "isActive": false,
+          "debug": false,
+          "singleRecordExecution": false,
+          "remoteExecutableFlag": 0,
+          "parameters": [],
+          "synchronous": false,
+          "lastModifyDate": 1791900344,
+          "collection": "/api/3/workflow_collections/9faafbb0-2fee-5100-ac77-3b72ca28a108",
+          "versions": [],
+          "triggerStep": "/api/3/workflow_steps/72ef54a8-186a-5444-8838-40941ee1f401",
+          "steps": [
+            {
+              "@type": "WorkflowStep",
+              "name": "Start",
+              "description": null,
+              "arguments": {
+                "route": "f860a6a7-6fb6-47a2-983f-b977eb5a5125",
+                "title": "ThreatConnect: Invoke ThreatConnect REST API",
+                "resources": [
+                  "alerts"
+                ],
+                "inputVariables": [],
+                "step_variables": {
+                  "input": {
+                    "params": [],
+                    "records": "{{vars.input.records}}"
+                  }
+                },
+                "triggerOnSource": true,
+                "triggerOnReplicate": false,
+                "noRecordExecution": true,
+                "singleRecordExecution": false,
+                "__triggerLimit": true,
+                "executeButtonText": "Execute",
+                "showToasterMessage": {
+                  "visible": false,
+                  "messageVisible": true
+                },
+                "displayConditions": {
+                  "alerts": {
+                    "sort": [],
+                    "limit": 30,
+                    "logic": "AND",
+                    "filters": []
+                  }
+                }
+              },
+              "status": null,
+              "top": "120",
+              "left": "200",
+              "stepType": "/api/3/workflow_step_types/f414d039-bb0d-4e59-9c39-a8f1e880b18a",
+              "group": null,
+              "uuid": "72ef54a8-186a-5444-8838-40941ee1f401"
+            },
+            {
+              "@type": "WorkflowStep",
+              "name": "Invoke ThreatConnect REST API",
+              "description": null,
+              "arguments": {
+                "step_variables": {
+                  "output_data": "{{vars.result}}"
+                },
+                "params": {
+                  "endpoint": "/api/v3/groups"
+                },
+                "connector": "threatconnect",
+                "operation": "invoke_api",
+                "version": "2.2.0",
+                "name": "ThreatConnect",
+                "operationTitle": "Invoke ThreatConnect REST API",
+                "pickFromTenant": false,
+                "config": ""
+              },
+              "status": null,
+              "top": "250",
+              "left": "200",
+              "stepType": "/api/3/workflow_step_types/0bfed618-0316-11e7-93ae-92361f002671",
+              "group": null,
+              "uuid": "64d33d43-58c2-5201-9cbf-22c7eba71e00"
+            }
+          ],
+          "routes": [
+            {
+              "@type": "WorkflowRoute",
+              "name": "Start -> Invoke ThreatConnect REST API",
+              "targetStep": "/api/3/workflow_steps/64d33d43-58c2-5201-9cbf-22c7eba71e00",
+              "sourceStep": "/api/3/workflow_steps/72ef54a8-186a-5444-8838-40941ee1f401",
+              "label": null,
+              "isExecuted": false,
+              "group": null,
+              "uuid": "0c9a0757-9ceb-5c8c-ad72-fd5cc838d91b"
+            }
+          ],
+          "groups": [],
+          "priority": "/api/3/picklists/9e8d41e4-8ada-4a2c-bd02-07f62c6d0a00",
+          "playbookOrigin": null,
+          "isEditable": true,
+          "uuid": "17ba6085-f5ee-428b-877c-9510f73569fa",
+          "owners": [],
+          "isPrivate": false
+        },
+        {
+          "@type": "Workflow",
+          "name": "Create Indicator",
+          "aliasName": null,
+          "tag": "#ThreatConnect",
+          "recordTags": [
+            "Threatconnect",
+            "threatconnect"
+          ],
+          "description": "Creates an indicator with a rating, confidence, tags and a security label. An indicator that already exists in the owner is updated.",
+          "isActive": false,
+          "debug": false,
+          "singleRecordExecution": false,
+          "remoteExecutableFlag": 0,
+          "parameters": [],
+          "synchronous": false,
+          "lastModifyDate": 1791900344,
+          "collection": "/api/3/workflow_collections/9faafbb0-2fee-5100-ac77-3b72ca28a108",
+          "versions": [],
+          "triggerStep": "/api/3/workflow_steps/ddd66afa-9085-5dcf-8f85-eddb6dccfca9",
+          "steps": [
+            {
+              "@type": "WorkflowStep",
+              "name": "Start",
+              "description": null,
+              "arguments": {
+                "title": "ThreatConnect: Create Indicator",
+                "resources": [
+                  "alerts"
+                ],
+                "route": "f5d7a896-b3b7-5484-9138-76658b3519c3",
+                "inputVariables": [],
+                "step_variables": {
+                  "input": {
+                    "params": [],
+                    "records": "{{vars.input.records}}"
+                  }
+                },
+                "triggerOnSource": true,
+                "triggerOnReplicate": false,
+                "noRecordExecution": true,
+                "singleRecordExecution": false,
+                "__triggerLimit": true,
+                "executeButtonText": "Execute",
+                "showToasterMessage": {
+                  "visible": false,
+                  "messageVisible": true
+                },
+                "displayConditions": {
+                  "alerts": {
+                    "sort": [],
+                    "limit": 30,
+                    "logic": "AND",
+                    "filters": []
+                  }
+                }
+              },
+              "status": null,
+              "top": "120",
+              "left": "200",
+              "stepType": "/api/3/workflow_step_types/f414d039-bb0d-4e59-9c39-a8f1e880b18a",
+              "group": null,
+              "uuid": "ddd66afa-9085-5dcf-8f85-eddb6dccfca9"
+            },
+            {
+              "@type": "WorkflowStep",
+              "name": "Create Indicator",
+              "description": null,
+              "arguments": {
+                "step_variables": {
+                  "output_data": "{{vars.result}}"
+                },
+                "params": {
+                  "indicator_type": "Address",
+                  "indicator": "198.51.100.10",
+                  "owner": "",
+                  "rating": "3.5",
+                  "confidence": 75,
+                  "tags": "Phishing",
+                  "security_labels": "TLP:AMBER",
+                  "description": "Reported by the SOC"
+                },
+                "connector": "threatconnect",
+                "operation": "create_indicator",
+                "version": "2.2.0",
+                "name": "ThreatConnect",
+                "operationTitle": "Create Indicator",
+                "pickFromTenant": false,
+                "config": ""
+              },
+              "status": null,
+              "top": "250",
+              "left": "200",
+              "stepType": "/api/3/workflow_step_types/0bfed618-0316-11e7-93ae-92361f002671",
+              "group": null,
+              "uuid": "8ac579fd-8b2d-5c84-8841-cfc74fd51cd5"
+            }
+          ],
+          "routes": [
+            {
+              "@type": "WorkflowRoute",
+              "name": "Start -> Create Indicator",
+              "targetStep": "/api/3/workflow_steps/8ac579fd-8b2d-5c84-8841-cfc74fd51cd5",
+              "sourceStep": "/api/3/workflow_steps/ddd66afa-9085-5dcf-8f85-eddb6dccfca9",
+              "label": null,
+              "isExecuted": false,
+              "group": null,
+              "uuid": "c6d9b8b4-f0a6-5ed7-90a8-a9d909eb5bc8"
+            }
+          ],
+          "groups": [],
+          "priority": "/api/3/picklists/9e8d41e4-8ada-4a2c-bd02-07f62c6d0a00",
+          "playbookOrigin": null,
+          "isEditable": true,
+          "uuid": "18ba6689-960a-5763-b2f5-81d23f7ce0aa",
+          "owners": [],
+          "isPrivate": false
+        },
+        {
+          "@type": "Workflow",
+          "name": "Update Indicator",
+          "aliasName": null,
+          "tag": "#ThreatConnect",
+          "recordTags": [
+            "Threatconnect",
+            "threatconnect"
+          ],
+          "description": "Adds a tag and raises the rating of an existing indicator.",
+          "isActive": false,
+          "debug": false,
+          "singleRecordExecution": false,
+          "remoteExecutableFlag": 0,
+          "parameters": [],
+          "synchronous": false,
+          "lastModifyDate": 1791900344,
+          "collection": "/api/3/workflow_collections/9faafbb0-2fee-5100-ac77-3b72ca28a108",
+          "versions": [],
+          "triggerStep": "/api/3/workflow_steps/f640c9c5-1006-548a-a8a1-95cc74b51748",
+          "steps": [
+            {
+              "@type": "WorkflowStep",
+              "name": "Start",
+              "description": null,
+              "arguments": {
+                "title": "ThreatConnect: Update Indicator",
+                "resources": [
+                  "alerts"
+                ],
+                "route": "5db55ca4-556d-58da-9202-194694309339",
+                "inputVariables": [],
+                "step_variables": {
+                  "input": {
+                    "params": [],
+                    "records": "{{vars.input.records}}"
+                  }
+                },
+                "triggerOnSource": true,
+                "triggerOnReplicate": false,
+                "noRecordExecution": true,
+                "singleRecordExecution": false,
+                "__triggerLimit": true,
+                "executeButtonText": "Execute",
+                "showToasterMessage": {
+                  "visible": false,
+                  "messageVisible": true
+                },
+                "displayConditions": {
+                  "alerts": {
+                    "sort": [],
+                    "limit": 30,
+                    "logic": "AND",
+                    "filters": []
+                  }
+                }
+              },
+              "status": null,
+              "top": "120",
+              "left": "200",
+              "stepType": "/api/3/workflow_step_types/f414d039-bb0d-4e59-9c39-a8f1e880b18a",
+              "group": null,
+              "uuid": "f640c9c5-1006-548a-a8a1-95cc74b51748"
+            },
+            {
+              "@type": "WorkflowStep",
+              "name": "Update Indicator",
+              "description": null,
+              "arguments": {
+                "step_variables": {
+                  "output_data": "{{vars.result}}"
+                },
+                "params": {
+                  "indicator": "198.51.100.10",
+                  "owner": "",
+                  "rating": "4",
+                  "tags": "Botnet",
+                  "tag_mode": "Add"
+                },
+                "connector": "threatconnect",
+                "operation": "update_indicator",
+                "version": "2.2.0",
+                "name": "ThreatConnect",
+                "operationTitle": "Update Indicator",
+                "pickFromTenant": false,
+                "config": ""
+              },
+              "status": null,
+              "top": "250",
+              "left": "200",
+              "stepType": "/api/3/workflow_step_types/0bfed618-0316-11e7-93ae-92361f002671",
+              "group": null,
+              "uuid": "b15eab5c-3025-5da4-b8e4-822004307632"
+            }
+          ],
+          "routes": [
+            {
+              "@type": "WorkflowRoute",
+              "name": "Start -> Update Indicator",
+              "targetStep": "/api/3/workflow_steps/b15eab5c-3025-5da4-b8e4-822004307632",
+              "sourceStep": "/api/3/workflow_steps/f640c9c5-1006-548a-a8a1-95cc74b51748",
+              "label": null,
+              "isExecuted": false,
+              "group": null,
+              "uuid": "7e2aa2b9-dcd4-506c-9e29-abe0cad52b6f"
+            }
+          ],
+          "groups": [],
+          "priority": "/api/3/picklists/9e8d41e4-8ada-4a2c-bd02-07f62c6d0a00",
+          "playbookOrigin": null,
+          "isEditable": true,
+          "uuid": "4baa8c71-01f0-5164-8052-ded16a22f22f",
+          "owners": [],
+          "isPrivate": false
+        },
+        {
+          "@type": "Workflow",
+          "name": "Mark False Positive",
+          "aliasName": null,
+          "tag": "#ThreatConnect",
+          "recordTags": [
+            "Threatconnect",
+            "threatconnect"
+          ],
+          "description": "Flags an indicator as a false positive.",
+          "isActive": false,
+          "debug": false,
+          "singleRecordExecution": false,
+          "remoteExecutableFlag": 0,
+          "parameters": [],
+          "synchronous": false,
+          "lastModifyDate": 1791900344,
+          "collection": "/api/3/workflow_collections/9faafbb0-2fee-5100-ac77-3b72ca28a108",
+          "versions": [],
+          "triggerStep": "/api/3/workflow_steps/4a8c7867-b166-5f84-bd67-5c9a4ec7440d",
+          "steps": [
+            {
+              "@type": "WorkflowStep",
+              "name": "Start",
+              "description": null,
+              "arguments": {
+                "title": "ThreatConnect: Mark False Positive",
+                "resources": [
+                  "alerts"
+                ],
+                "route": "6bb48f1a-b841-5248-9c21-b9455f9f1b71",
+                "inputVariables": [],
+                "step_variables": {
+                  "input": {
+                    "params": [],
+                    "records": "{{vars.input.records}}"
+                  }
+                },
+                "triggerOnSource": true,
+                "triggerOnReplicate": false,
+                "noRecordExecution": true,
+                "singleRecordExecution": false,
+                "__triggerLimit": true,
+                "executeButtonText": "Execute",
+                "showToasterMessage": {
+                  "visible": false,
+                  "messageVisible": true
+                },
+                "displayConditions": {
+                  "alerts": {
+                    "sort": [],
+                    "limit": 30,
+                    "logic": "AND",
+                    "filters": []
+                  }
+                }
+              },
+              "status": null,
+              "top": "120",
+              "left": "200",
+              "stepType": "/api/3/workflow_step_types/f414d039-bb0d-4e59-9c39-a8f1e880b18a",
+              "group": null,
+              "uuid": "4a8c7867-b166-5f84-bd67-5c9a4ec7440d"
+            },
+            {
+              "@type": "WorkflowStep",
+              "name": "Mark False Positive",
+              "description": null,
+              "arguments": {
+                "step_variables": {
+                  "output_data": "{{vars.result}}"
+                },
+                "params": {
+                  "indicator": "198.51.100.10",
+                  "owner": ""
+                },
+                "connector": "threatconnect",
+                "operation": "mark_false_positive",
+                "version": "2.2.0",
+                "name": "ThreatConnect",
+                "operationTitle": "Mark False Positive",
+                "pickFromTenant": false,
+                "config": ""
+              },
+              "status": null,
+              "top": "250",
+              "left": "200",
+              "stepType": "/api/3/workflow_step_types/0bfed618-0316-11e7-93ae-92361f002671",
+              "group": null,
+              "uuid": "75d2c886-c24b-5cdc-84b8-1ef99f113d32"
+            }
+          ],
+          "routes": [
+            {
+              "@type": "WorkflowRoute",
+              "name": "Start -> Mark False Positive",
+              "targetStep": "/api/3/workflow_steps/75d2c886-c24b-5cdc-84b8-1ef99f113d32",
+              "sourceStep": "/api/3/workflow_steps/4a8c7867-b166-5f84-bd67-5c9a4ec7440d",
+              "label": null,
+              "isExecuted": false,
+              "group": null,
+              "uuid": "7d53aafc-72b3-5315-b624-7bd88428a8c4"
+            }
+          ],
+          "groups": [],
+          "priority": "/api/3/picklists/9e8d41e4-8ada-4a2c-bd02-07f62c6d0a00",
+          "playbookOrigin": null,
+          "isEditable": true,
+          "uuid": "fb358c78-d7b8-5f98-a428-d83acd462460",
+          "owners": [],
+          "isPrivate": false
+        },
+        {
+          "@type": "Workflow",
+          "name": "List Owners",
+          "aliasName": null,
+          "tag": "#ThreatConnect",
+          "recordTags": [
+            "Threatconnect",
+            "threatconnect"
+          ],
+          "description": "Lists the organizations, communities and sources the credentials can see.",
+          "isActive": false,
+          "debug": false,
+          "singleRecordExecution": false,
+          "remoteExecutableFlag": 0,
+          "parameters": [],
+          "synchronous": false,
+          "lastModifyDate": 1791900344,
+          "collection": "/api/3/workflow_collections/9faafbb0-2fee-5100-ac77-3b72ca28a108",
+          "versions": [],
+          "triggerStep": "/api/3/workflow_steps/2ab74ea9-05d7-58b8-8372-e7b94ff30992",
+          "steps": [
+            {
+              "@type": "WorkflowStep",
+              "name": "Start",
+              "description": null,
+              "arguments": {
+                "title": "ThreatConnect: List Owners",
+                "resources": [
+                  "alerts"
+                ],
+                "route": "c868ab29-5899-5d28-a4ea-2d93a9cde348",
+                "inputVariables": [],
+                "step_variables": {
+                  "input": {
+                    "params": [],
+                    "records": "{{vars.input.records}}"
+                  }
+                },
+                "triggerOnSource": true,
+                "triggerOnReplicate": false,
+                "noRecordExecution": true,
+                "singleRecordExecution": false,
+                "__triggerLimit": true,
+                "executeButtonText": "Execute",
+                "showToasterMessage": {
+                  "visible": false,
+                  "messageVisible": true
+                },
+                "displayConditions": {
+                  "alerts": {
+                    "sort": [],
+                    "limit": 30,
+                    "logic": "AND",
+                    "filters": []
+                  }
+                }
+              },
+              "status": null,
+              "top": "120",
+              "left": "200",
+              "stepType": "/api/3/workflow_step_types/f414d039-bb0d-4e59-9c39-a8f1e880b18a",
+              "group": null,
+              "uuid": "2ab74ea9-05d7-58b8-8372-e7b94ff30992"
+            },
+            {
+              "@type": "WorkflowStep",
+              "name": "List Owners",
+              "description": null,
+              "arguments": {
+                "step_variables": {
+                  "output_data": "{{vars.result}}"
+                },
+                "params": {},
+                "connector": "threatconnect",
+                "operation": "list_owners",
+                "version": "2.2.0",
+                "name": "ThreatConnect",
+                "operationTitle": "List Owners",
+                "pickFromTenant": false,
+                "config": ""
+              },
+              "status": null,
+              "top": "250",
+              "left": "200",
+              "stepType": "/api/3/workflow_step_types/0bfed618-0316-11e7-93ae-92361f002671",
+              "group": null,
+              "uuid": "567cbb7f-25c2-5c70-8c2a-a75af17f519d"
+            }
+          ],
+          "routes": [
+            {
+              "@type": "WorkflowRoute",
+              "name": "Start -> List Owners",
+              "targetStep": "/api/3/workflow_steps/567cbb7f-25c2-5c70-8c2a-a75af17f519d",
+              "sourceStep": "/api/3/workflow_steps/2ab74ea9-05d7-58b8-8372-e7b94ff30992",
+              "label": null,
+              "isExecuted": false,
+              "group": null,
+              "uuid": "5423d616-77c4-5209-97bc-924bb1e7bd4d"
+            }
+          ],
+          "groups": [],
+          "priority": "/api/3/picklists/9e8d41e4-8ada-4a2c-bd02-07f62c6d0a00",
+          "playbookOrigin": null,
+          "isEditable": true,
+          "uuid": "18a3b5d4-7137-578e-94c9-10e74e1c4b92",
+          "owners": [],
+          "isPrivate": false
+        },
+        {
+          "@type": "Workflow",
+          "name": "Get Indicators",
+          "aliasName": null,
+          "tag": "",
+          "recordTags": [
+            "threatconnect"
+          ],
+          "description": "Manually fetch indicators from ThreatConnect. Diagnostic / on-demand.",
+          "isActive": true,
+          "debug": false,
+          "singleRecordExecution": false,
+          "remoteExecutableFlag": 0,
+          "parameters": [],
+          "synchronous": false,
+          "lastModifyDate": 1791900344,
+          "collection": "/api/3/workflow_collections/9faafbb0-2fee-5100-ac77-3b72ca28a108",
+          "versions": [],
+          "triggerStep": "/api/3/workflow_steps/c0b3e82a-02e9-5dd2-88b0-cd431610bce0",
+          "steps": [
+            {
+              "@type": "WorkflowStep",
+              "name": "Start",
+              "description": null,
+              "arguments": {
+                "route": "f5e447cd-5aa0-558d-8371-7c07cd895b7b",
+                "title": "ThreatConnect: Get Indicators",
+                "resources": [
+                  "alerts"
+                ],
+                "inputVariables": [],
+                "step_variables": {
+                  "input": {
+                    "params": [],
+                    "records": "{{vars.input.records}}"
+                  }
+                },
+                "triggerOnSource": true,
+                "triggerOnReplicate": false,
+                "noRecordExecution": true,
+                "singleRecordExecution": false,
+                "__triggerLimit": true,
+                "executeButtonText": "Execute",
+                "showToasterMessage": {
+                  "visible": false,
+                  "messageVisible": true
+                },
+                "displayConditions": {
+                  "alerts": {
+                    "sort": [],
+                    "limit": 30,
+                    "logic": "AND",
+                    "filters": []
+                  }
+                }
+              },
+              "status": null,
+              "top": "120",
+              "left": "200",
+              "stepType": "/api/3/workflow_step_types/f414d039-bb0d-4e59-9c39-a8f1e880b18a",
+              "group": null,
+              "uuid": "c0b3e82a-02e9-5dd2-88b0-cd431610bce0"
+            },
+            {
+              "@type": "WorkflowStep",
+              "name": "Fetch Indicators Bulk",
+              "description": null,
+              "arguments": {
+                "pickFromTenant": false,
+                "config": "",
+                "params": {},
+                "connector": "threatconnect",
+                "operation": "fetch_indicators",
+                "version": "2.2.0",
+                "name": "ThreatConnect",
+                "operationTitle": "Fetch Indicators (Bulk)",
+                "step_variables": []
+              },
+              "status": null,
+              "top": "250",
+              "left": "200",
+              "stepType": "/api/3/workflow_step_types/0bfed618-0316-11e7-93ae-92361f002671",
+              "group": null,
+              "uuid": "d9f4d7d2-dbe5-5f0f-9c31-713ca9f68c43"
+            }
+          ],
+          "routes": [
+            {
+              "@type": "WorkflowRoute",
+              "name": "Start -> Fetch Indicators Bulk",
+              "targetStep": "/api/3/workflow_steps/d9f4d7d2-dbe5-5f0f-9c31-713ca9f68c43",
+              "sourceStep": "/api/3/workflow_steps/c0b3e82a-02e9-5dd2-88b0-cd431610bce0",
+              "label": null,
+              "isExecuted": false,
+              "group": null,
+              "uuid": "48f3fa85-2082-5500-92dc-8590f1fdc57e"
+            }
+          ],
+          "groups": [],
+          "priority": "/api/3/picklists/9e8d41e4-8ada-4a2c-bd02-07f62c6d0a00",
+          "playbookOrigin": null,
+          "isEditable": true,
+          "uuid": "7a418899-3993-58c7-81f4-98c954074cd2",
+          "owners": [],
+          "isPrivate": false
+        },
+        {
+          "@type": "Workflow",
+          "name": "> ThreatConnect > Fetch and Create",
+          "aliasName": null,
+          "tag": "",
+          "recordTags": [
+            "dataingestion",
+            "fetch",
+            "create",
+            "threatconnect"
+          ],
+          "description": "Fetch and create indicators from ThreatConnect. Called as a child workflow.",
+          "isActive": true,
+          "debug": false,
+          "singleRecordExecution": false,
+          "remoteExecutableFlag": 0,
+          "parameters": [
+            "lastPullTime"
+          ],
+          "synchronous": false,
+          "lastModifyDate": 1791900344,
+          "collection": "/api/3/workflow_collections/9faafbb0-2fee-5100-ac77-3b72ca28a108",
+          "versions": [],
+          "triggerStep": "/api/3/workflow_steps/d9c2c5f2-964d-5c9a-9b60-0729120577b0",
+          "steps": [
+            {
+              "@type": "WorkflowStep",
+              "name": "Start",
+              "description": null,
+              "arguments": {
+                "step_variables": {
+                  "input": {
+                    "params": []
+                  },
+                  "_configuration_schema": "[{\"title\": \"Indicator Type Filter\", \"name\": \"indicator_type\", \"type\": \"select\", \"required\": false, \"editable\": true, \"visible\": true, \"options\": [\"Any\", \"Address\", \"Host\", \"URL\", \"EmailAddress\", \"File\"], \"value\": \"Any\", \"tooltip\": \"Restrict ingestion to a single ThreatConnect indicator type. 'Any' pulls all types.\"}, {\"title\": \"Owner Filter (Optional)\", \"name\": \"owner\", \"type\": \"text\", \"required\": false, \"editable\": true, \"visible\": true, \"tooltip\": \"Restrict ingestion to indicators owned by this Source/Community/Organization. Defaults to the connector's Default Organization.\"}, {\"title\": \"Ingestion Begin From\", \"name\": \"last_pull_datetime\", \"type\": \"datetime\", \"required\": false, \"editable\": true, \"visible\": true, \"tooltip\": \"Pull only indicators modified at or after this datetime. Updated automatically by the scheduler after each run.\"}, {\"title\": \"Reputation\", \"name\": \"reputation\", \"type\": \"select\", \"required\": true, \"editable\": true, \"visible\": true, \"options\": [\"Good\", \"Suspicious\", \"Malicious\", \"No Reputation Available\", \"TBD\"], \"value\": \"Suspicious\", \"tooltip\": \"Default reputation applied to ingested indicators.\"}, {\"title\": \"TLP\", \"name\": \"tlp\", \"type\": \"select\", \"required\": false, \"editable\": true, \"visible\": true, \"options\": [\"Red\", \"Amber\", \"Green\", \"White\"], \"value\": \"Amber\"}, {\"title\": \"Confidence\", \"name\": \"confidence\", \"type\": \"integer\", \"required\": false, \"editable\": true, \"visible\": true, \"value\": 75, \"validation\": {\"minlength\": 0, \"maxlength\": 100}, \"tooltip\": \"Default confidence applied when an indicator does not carry one.\"}, {\"title\": \"Maximum Age (in days)\", \"name\": \"expiry\", \"type\": \"integer\", \"required\": false, \"editable\": true, \"visible\": true, \"value\": 30}, {\"title\": \"Per-Run Limit (Optional)\", \"name\": \"limit\", \"type\": \"integer\", \"required\": false, \"editable\": true, \"visible\": true, \"tooltip\": \"Cap indicators ingested per run. Leave blank for full pagination.\"}]"
+                }
+              },
+              "status": null,
+              "top": "120",
+              "left": "200",
+              "stepType": "/api/3/workflow_step_types/b348f017-9a94-471f-87f8-ce88b6a7ad62",
+              "group": null,
+              "uuid": "d9c2c5f2-964d-5c9a-9b60-0729120577b0"
+            },
+            {
+              "@type": "WorkflowStep",
+              "name": "Configuration",
+              "description": null,
+              "arguments": {
+                "indicator_type": "Any",
+                "owner": "",
+                "last_pull_datetime": 0,
+                "reputation": "Suspicious",
+                "tlp": "Amber",
+                "confidence": 75,
+                "expiry": 30,
+                "limit": 0,
+                "tlp_map": "{'Red': {{'TrafficLightProtocol' | picklist('Red') }}, 'Amber': {{'TrafficLightProtocol' | picklist('Amber') }}, 'Green': {{'TrafficLightProtocol' | picklist('Green') }}, 'White': {{'TrafficLightProtocol' | picklist('White') }}}",
+                "reputation_map": "{'Good': {{'IndicatorReputation' | picklist('Good') }}, 'Malicious': {{'IndicatorReputation' | picklist('Malicious') }}, 'Suspicious': {{'IndicatorReputation' | picklist('Suspicious') }}, 'TBD': {{'IndicatorReputation' | picklist('TBD') }}, 'No Reputation Available': {{'IndicatorReputation' | picklist('No Reputation Available') }}}",
+                "type_of_feed_map": "{'Address': {{'ThreatIntelFeedType' | picklist('IPv4 Address') }}, 'Host': {{'ThreatIntelFeedType' | picklist('Domain') }}, 'EmailAddress': {{'ThreatIntelFeedType' | picklist('Email Address') }}, 'URL': {{'ThreatIntelFeedType' | picklist('URL') }}, 'File': {{'ThreatIntelFeedType' | picklist('FileHash-SHA256') }}, 'FileMD5': {{'ThreatIntelFeedType' | picklist('FileHash-MD5') }}, 'FileSHA1': {{'ThreatIntelFeedType' | picklist('FileHash-SHA1') }}}"
+              },
+              "status": null,
+              "top": "250",
+              "left": "200",
+              "stepType": "/api/3/workflow_step_types/04d0cf46-b6a8-42c4-8683-60a7eaa69e8f",
+              "group": null,
+              "uuid": "657c390b-37c6-55f7-8654-9ae9672dedb6"
+            },
+            {
+              "@type": "WorkflowStep",
+              "name": "Is Data Only For Mapping",
+              "description": null,
+              "arguments": {
+                "conditions": [
+                  {
+                    "option": "Yes For Mapping",
+                    "condition": "{{ vars.request.env_setup == true }}",
+                    "step_iri": "/api/3/workflow_steps/74c05754-d47f-59bf-bbc8-6ee7dc7af60b",
+                    "step_name": "Return Sample Data"
+                  },
+                  {
+                    "option": "No For Ingestion",
+                    "default": true,
+                    "step_iri": "/api/3/workflow_steps/d7f82c85-fb5e-5751-8001-1502442b67a8",
+                    "step_name": "Fetch Indicators"
+                  }
+                ]
+              },
+              "status": null,
+              "top": "380",
+              "left": "200",
+              "stepType": "/api/3/workflow_step_types/12254cf5-5db7-4b1a-8cb1-3af081924b28",
+              "group": null,
+              "uuid": "3f587841-fd17-5a72-9c86-edd1b33a98a0"
+            },
+            {
+              "@type": "WorkflowStep",
+              "name": "Return Sample Data",
+              "description": null,
+              "arguments": {
+                "data": "[\n  {\n    \"value\": \"192.0.2.1\",\n    \"type\": \"ip\",\n    \"score\": 80,\n    \"risk_string\": \"sample\"\n  },\n  {\n    \"value\": \"203.0.113.5\",\n    \"type\": \"ip\",\n    \"score\": 65,\n    \"risk_string\": \"sample\"\n  }\n]"
+              },
+              "status": null,
+              "top": "510",
+              "left": "200",
+              "stepType": "/api/3/workflow_step_types/04d0cf46-b6a8-42c4-8683-60a7eaa69e8f",
+              "group": null,
+              "uuid": "74c05754-d47f-59bf-bbc8-6ee7dc7af60b"
+            },
+            {
+              "@type": "WorkflowStep",
+              "name": "Fetch Indicators",
+              "description": null,
+              "arguments": {
+                "pickFromTenant": false,
+                "config": "",
+                "params": {
+                  "indicator_type": "{{vars.indicator_type}}",
+                  "owner": "{{vars.owner}}",
+                  "modified_since": "{{vars.input.params.lastPullTime}}",
+                  "page_size": 500,
+                  "limit": "{{vars.limit}}"
+                },
+                "connector": "threatconnect",
+                "operation": "fetch_indicators",
+                "version": "2.2.0",
+                "name": "ThreatConnect",
+                "operationTitle": "Fetch Indicators (Bulk)",
+                "step_variables": []
+              },
+              "status": null,
+              "top": "510",
+              "left": "540",
+              "stepType": "/api/3/workflow_step_types/0bfed618-0316-11e7-93ae-92361f002671",
+              "group": null,
+              "uuid": "d7f82c85-fb5e-5751-8001-1502442b67a8"
+            },
+            {
+              "@type": "WorkflowStep",
+              "name": "Build Feed List",
+              "description": null,
+              "arguments": {
+                "data": "{{vars.steps.Fetch_Indicators.data.indicators}}",
+                "currentPullTime": "{{ arrow.utcnow().isoformat() }}"
+              },
+              "status": null,
+              "top": "640",
+              "left": "540",
+              "stepType": "/api/3/workflow_step_types/04d0cf46-b6a8-42c4-8683-60a7eaa69e8f",
+              "group": null,
+              "uuid": "e373ea56-1ea2-5fae-9ce7-7b625d053adb"
+            },
+            {
+              "@type": "WorkflowStep",
+              "name": "Create Record",
+              "description": null,
+              "arguments": {
+                "when": "{{vars.data | length > 0}}",
+                "resource": {
+                  "value": "{% if vars.item.type == 'File' %}{{ vars.item.summary.split(' : ')|last }}{% else %}{{ vars.item.summary }}{% endif %}",
+                  "typeOfFeed": "{{ (('FileMD5' if (vars.item.summary.split(' : ')|last|length) == 32 else 'FileSHA1' if (vars.item.summary.split(' : ')|last|length) == 40 else 'File') if vars.item.type == 'File' else vars.item.type) | resolveRange(vars.type_of_feed_map) }}",
+                  "source": "ThreatConnect",
+                  "sourceId": "{{vars.item.id}}",
+                  "tLP": "{% if vars.tlp %}{{ vars.tlp | resolveRange(vars.tlp_map) }}{% else %}None{% endif %}",
+                  "reputation": "{% if vars.reputation %}{{ vars.reputation | resolveRange(vars.reputation_map) }}{% else %}None{% endif %}",
+                  "confidence": "{% if vars.confidence %}{{ vars.confidence }}{% else %}{{ (vars.item.confidence | int) }}{% endif %}",
+                  "expiresOn": "{% if vars.expiry %}{{ arrow.utcnow().int_timestamp + (vars.expiry | int)*24*60*60 }}{% else %}None{% endif %}",
+                  "sourceData": "{{vars.item | toJSON}}",
+                  "description": "{% if vars.item.description %}ThreatConnect: {{vars.item.description}}{% else %}ThreatConnect indicator{% endif %}",
+                  "__replace": ""
+                },
+                "collection": "/api/ingest-feeds/threat_intel_feeds",
+                "for_each": {
+                  "item": "{{vars.data}}",
+                  "condition": "",
+                  "__bulk": true,
+                  "batch_size": 100
+                }
+              },
+              "status": null,
+              "top": "770",
+              "left": "540",
+              "stepType": "/api/3/workflow_step_types/7b221880-716b-4726-a2ca-5e568d330b3e",
+              "group": null,
+              "uuid": "2c544e13-fc42-5548-8b3e-670df0328cfa"
+            },
+            {
+              "@type": "WorkflowStep",
+              "name": "Save Result",
+              "description": null,
+              "arguments": {
+                "currentPullTime": "{{vars.currentPullTime}}"
+              },
+              "status": null,
+              "top": "900",
+              "left": "540",
+              "stepType": "/api/3/workflow_step_types/04d0cf46-b6a8-42c4-8683-60a7eaa69e8f",
+              "group": null,
+              "uuid": "12886125-0e02-5f6c-8037-0a4096788449"
+            }
+          ],
+          "routes": [
+            {
+              "@type": "WorkflowRoute",
+              "name": "Start -> Configuration",
+              "targetStep": "/api/3/workflow_steps/657c390b-37c6-55f7-8654-9ae9672dedb6",
+              "sourceStep": "/api/3/workflow_steps/d9c2c5f2-964d-5c9a-9b60-0729120577b0",
+              "label": null,
+              "isExecuted": false,
+              "group": null,
+              "uuid": "0283daf3-f466-5b44-ad95-ebcb08e8d17b"
+            },
+            {
+              "@type": "WorkflowRoute",
+              "name": "Configuration -> Is Data Only For Mapping",
+              "targetStep": "/api/3/workflow_steps/3f587841-fd17-5a72-9c86-edd1b33a98a0",
+              "sourceStep": "/api/3/workflow_steps/657c390b-37c6-55f7-8654-9ae9672dedb6",
+              "label": null,
+              "isExecuted": false,
+              "group": null,
+              "uuid": "8ad1bde9-a76b-579b-a0da-b2ea5b642cd9"
+            },
+            {
+              "@type": "WorkflowRoute",
+              "name": "Is Data Only For Mapping -> Return Sample Data",
+              "targetStep": "/api/3/workflow_steps/74c05754-d47f-59bf-bbc8-6ee7dc7af60b",
+              "sourceStep": "/api/3/workflow_steps/3f587841-fd17-5a72-9c86-edd1b33a98a0",
+              "label": "Yes For Mapping",
+              "isExecuted": false,
+              "group": null,
+              "uuid": "adc8a1f3-2c3c-5c54-b53f-529f791ac344"
+            },
+            {
+              "@type": "WorkflowRoute",
+              "name": "Is Data Only For Mapping -> Fetch Indicators",
+              "targetStep": "/api/3/workflow_steps/d7f82c85-fb5e-5751-8001-1502442b67a8",
+              "sourceStep": "/api/3/workflow_steps/3f587841-fd17-5a72-9c86-edd1b33a98a0",
+              "label": "No For Ingestion",
+              "isExecuted": false,
+              "group": null,
+              "uuid": "20c7c56a-d07a-5368-a258-81516542972f"
+            },
+            {
+              "@type": "WorkflowRoute",
+              "name": "Fetch Indicators -> Build Feed List",
+              "targetStep": "/api/3/workflow_steps/e373ea56-1ea2-5fae-9ce7-7b625d053adb",
+              "sourceStep": "/api/3/workflow_steps/d7f82c85-fb5e-5751-8001-1502442b67a8",
+              "label": null,
+              "isExecuted": false,
+              "group": null,
+              "uuid": "cdf30a54-eca7-5b4d-9e22-99998a777e98"
+            },
+            {
+              "@type": "WorkflowRoute",
+              "name": "Build Feed List -> Create Record",
+              "targetStep": "/api/3/workflow_steps/2c544e13-fc42-5548-8b3e-670df0328cfa",
+              "sourceStep": "/api/3/workflow_steps/e373ea56-1ea2-5fae-9ce7-7b625d053adb",
+              "label": null,
+              "isExecuted": false,
+              "group": null,
+              "uuid": "f42e8e6d-26e5-5fc7-985f-cf281b703202"
+            },
+            {
+              "@type": "WorkflowRoute",
+              "name": "Create Record -> Save Result",
+              "targetStep": "/api/3/workflow_steps/12886125-0e02-5f6c-8037-0a4096788449",
+              "sourceStep": "/api/3/workflow_steps/2c544e13-fc42-5548-8b3e-670df0328cfa",
+              "label": null,
+              "isExecuted": false,
+              "group": null,
+              "uuid": "7352cc4b-6da8-5cb7-b0bc-54f32d204b4b"
+            }
+          ],
+          "groups": [],
+          "priority": "/api/3/picklists/9e8d41e4-8ada-4a2c-bd02-07f62c6d0a00",
+          "playbookOrigin": null,
+          "isEditable": true,
+          "uuid": "d0757225-b380-5b28-8ad8-2ea96d172f7c",
+          "owners": [],
+          "isPrivate": false
+        },
+        {
+          "@type": "Workflow",
+          "name": "ThreatConnect > Ingest",
+          "aliasName": null,
+          "tag": "",
+          "recordTags": [
+            "dataingestion",
+            "ingest",
+            "threatconnect"
+          ],
+          "description": "Scheduled ingestion orchestrator for ThreatConnect. Maintains per-install LastPullTime macro.",
+          "isActive": true,
+          "debug": false,
+          "singleRecordExecution": false,
+          "remoteExecutableFlag": 0,
+          "parameters": [],
+          "synchronous": false,
+          "lastModifyDate": 1791900344,
+          "collection": "/api/3/workflow_collections/9faafbb0-2fee-5100-ac77-3b72ca28a108",
+          "versions": [],
+          "triggerStep": "/api/3/workflow_steps/3aa68f0d-02e5-58ec-ad72-96c7fc22e587",
+          "steps": [
+            {
+              "@type": "WorkflowStep",
+              "name": "Start",
+              "description": null,
+              "arguments": {
+                "step_variables": {
+                  "input": {
+                    "params": []
+                  }
+                }
+              },
+              "status": null,
+              "top": "120",
+              "left": "200",
+              "stepType": "/api/3/workflow_step_types/b348f017-9a94-471f-87f8-ce88b6a7ad62",
+              "group": null,
+              "uuid": "3aa68f0d-02e5-58ec-ad72-96c7fc22e587"
+            },
+            {
+              "@type": "WorkflowStep",
+              "name": "Configuration",
+              "description": null,
+              "arguments": {
+                "fetchTime": "0",
+                "pullTimeMacro": "ThreatconnectLastPullTime_{{vars['audit_info']['cyops_playbook_iri'].split('/')[-1].replace('-','_')}}"
+              },
+              "status": null,
+              "top": "250",
+              "left": "200",
+              "stepType": "/api/3/workflow_step_types/04d0cf46-b6a8-42c4-8683-60a7eaa69e8f",
+              "group": null,
+              "uuid": "f3053b3a-0ffd-5c3d-8447-7a84e2241537"
+            },
+            {
+              "@type": "WorkflowStep",
+              "name": "Get Macro Value",
+              "description": null,
+              "arguments": {
+                "params": {
+                  "iri": "/api/wf/api/dynamic-variable/?name={{vars.pullTimeMacro}}",
+                  "body": "",
+                  "method": "GET"
+                },
+                "connector": "cyops_utilities",
+                "operation": "make_cyops_request",
+                "version": "3.7.2",
+                "name": "Utilities",
+                "operationTitle": "FSR: Make FortiSOAR API Call",
+                "step_variables": [],
+                "pickFromTenant": false,
+                "config": ""
+              },
+              "status": null,
+              "top": "380",
+              "left": "200",
+              "stepType": "/api/3/workflow_step_types/0bfed618-0316-11e7-93ae-92361f002671",
+              "group": null,
+              "uuid": "47913f84-4e16-59d6-a49c-9d123e2d2a08"
+            },
+            {
+              "@type": "WorkflowStep",
+              "name": "Extract Value from Response",
+              "description": null,
+              "arguments": {
+                "lastPullTime": "{% if (vars.steps.Get_Macro_Value.data['hydra:member'] | length) > 0 %}{{ vars.steps.Get_Macro_Value.data['hydra:member'][0].value }}{% else %}0{% endif %}"
+              },
+              "status": null,
+              "top": "510",
+              "left": "200",
+              "stepType": "/api/3/workflow_step_types/04d0cf46-b6a8-42c4-8683-60a7eaa69e8f",
+              "group": null,
+              "uuid": "ca769ffb-fe22-5380-b2c5-115c0bc080d6"
+            },
+            {
+              "@type": "WorkflowStep",
+              "name": "Fetch Indicators",
+              "description": null,
+              "arguments": {
+                "apply_async": false,
+                "workflowReference": "/api/3/workflows/d0757225-b380-5b28-8ad8-2ea96d172f7c",
+                "arguments": {
+                  "lastPullTime": "{{vars.lastPullTime}}"
+                }
+              },
+              "status": null,
+              "top": "640",
+              "left": "200",
+              "stepType": "/api/3/workflow_step_types/74932bdc-b8b6-4d24-88c4-1a4dfbc524f3",
+              "group": null,
+              "uuid": "7054c1b8-0b17-5c60-b376-666fee8aa03a"
+            },
+            {
+              "@type": "WorkflowStep",
+              "name": "Update Pull Time",
+              "description": null,
+              "arguments": {
+                "params": {
+                  "macro": "{{vars.pullTimeMacro}}",
+                  "value": "{{vars.steps.Fetch_Indicators.currentPullTime}}"
+                },
+                "connector": "cyops_utilities",
+                "operation": "updatemacro",
+                "operationTitle": "CyOPs: Update Macro",
+                "version": "3.7.2",
+                "name": "Utilities",
+                "step_variables": [],
+                "pickFromTenant": false,
+                "config": ""
+              },
+              "status": null,
+              "top": "770",
+              "left": "200",
+              "stepType": "/api/3/workflow_step_types/0bfed618-0316-11e7-93ae-92361f002671",
+              "group": null,
+              "uuid": "dcdf9e4d-6d0e-548f-a147-f3ec753ddb37"
+            }
+          ],
+          "routes": [
+            {
+              "@type": "WorkflowRoute",
+              "name": "Start -> Configuration",
+              "targetStep": "/api/3/workflow_steps/f3053b3a-0ffd-5c3d-8447-7a84e2241537",
+              "sourceStep": "/api/3/workflow_steps/3aa68f0d-02e5-58ec-ad72-96c7fc22e587",
+              "label": null,
+              "isExecuted": false,
+              "group": null,
+              "uuid": "c97ea3c8-f5c4-52e3-b85c-78bc3f21716d"
+            },
+            {
+              "@type": "WorkflowRoute",
+              "name": "Configuration -> Get Macro Value",
+              "targetStep": "/api/3/workflow_steps/47913f84-4e16-59d6-a49c-9d123e2d2a08",
+              "sourceStep": "/api/3/workflow_steps/f3053b3a-0ffd-5c3d-8447-7a84e2241537",
+              "label": null,
+              "isExecuted": false,
+              "group": null,
+              "uuid": "98371fb7-673c-5c15-a147-773609c03e4f"
+            },
+            {
+              "@type": "WorkflowRoute",
+              "name": "Get Macro Value -> Extract Value from Response",
+              "targetStep": "/api/3/workflow_steps/ca769ffb-fe22-5380-b2c5-115c0bc080d6",
+              "sourceStep": "/api/3/workflow_steps/47913f84-4e16-59d6-a49c-9d123e2d2a08",
+              "label": null,
+              "isExecuted": false,
+              "group": null,
+              "uuid": "f4e52a0b-8120-50fd-ba39-a4598a2e2d3e"
+            },
+            {
+              "@type": "WorkflowRoute",
+              "name": "Extract Value from Response -> Fetch Indicators",
+              "targetStep": "/api/3/workflow_steps/7054c1b8-0b17-5c60-b376-666fee8aa03a",
+              "sourceStep": "/api/3/workflow_steps/ca769ffb-fe22-5380-b2c5-115c0bc080d6",
+              "label": null,
+              "isExecuted": false,
+              "group": null,
+              "uuid": "8bf79c97-2a24-59ac-80f7-2ea4595e7017"
+            },
+            {
+              "@type": "WorkflowRoute",
+              "name": "Fetch Indicators -> Update Pull Time",
+              "targetStep": "/api/3/workflow_steps/dcdf9e4d-6d0e-548f-a147-f3ec753ddb37",
+              "sourceStep": "/api/3/workflow_steps/7054c1b8-0b17-5c60-b376-666fee8aa03a",
+              "label": null,
+              "isExecuted": false,
+              "group": null,
+              "uuid": "60e75f2b-72a0-50ae-bf4b-71b285fe4ff2"
+            }
+          ],
+          "groups": [],
+          "priority": "/api/3/picklists/9e8d41e4-8ada-4a2c-bd02-07f62c6d0a00",
+          "playbookOrigin": null,
+          "isEditable": true,
+          "uuid": "31a22282-653d-5315-8a2f-da3a547baa1d",
+          "owners": [],
+          "isPrivate": false
+        }
+      ]
+    }
+  ]
+}

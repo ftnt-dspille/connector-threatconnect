@@ -1,0 +1,589 @@
+# ThreatConnect sample playbook collection.
+#
+# Compiled to threatconnect/playbooks/playbooks.json by scripts/build_playbooks.sh
+# (the fsrpb compiler, set FSRPB_HOME). Author here, never in the JSON.
+#
+#   * Lookups and changes (inactive samples): clone one, fill in the example values.
+#   * Get Indicators, ThreatConnect > Fetch and Create, ThreatConnect > Ingest (active):
+#     the data ingestion contract. Ingest reads a last-pull-time macro, calls Fetch and
+#     Create, and moves the macro forward. File indicators land as MD5, SHA1 or SHA256
+#     by hash length.
+
+collection: Sample - ThreatConnect - 2.2.0
+uuid: 9faafbb0-2fee-5100-ac77-3b72ca28a108
+description: 'Sample playbooks for ThreatConnect: indicator lookups and changes, and scheduled ingestion.
+  Clone these into a separate collection before customizing - the sample collection is replaced on connector
+  upgrade.'
+visible: true
+tags:
+- threatconnect
+- ThreatIntel
+exported_tags:
+- ThreatIntel
+- create
+- dataingestion
+- fetch
+- ingest
+- threatconnect
+playbooks:
+- name: Get IP Reputation
+  uuid: 9679e3e8-3bd9-4651-8256-aca19f528abb
+  description: Retrieves the reputation for a specific IP address using the ThreatConnect API based on
+    the IP address and other input parameters you have specified
+  tag: '#ThreatConnect'
+  tags:
+  - Threatconnect
+  - threatconnect
+  is_active: false
+  trigger_step_id: start
+  steps:
+  - type: start
+    name: Start
+    module: alerts
+    route: 73a4e272-66f9-42a4-9eb7-9e354dcdfc06
+    requires_record: false
+    button_label: 'ThreatConnect: Get IP Reputation'
+    next: get_ip_reputation
+  - type: connector
+    name: Get IP Reputation
+    step_variables:
+      output_data: '{{vars.result}}'
+    params:
+      owner: ''
+      indicator: 1.1.1.1
+      includeAdditional: true
+    connector: threatconnect
+    operation: hunt_ip
+- name: Get File Reputation
+  uuid: ca485c74-5bb7-4dce-8150-52b240ab5c0d
+  description: Retrieves the reputation of a specific file hash using the ThreatConnect API based on the
+    file hash and other input parameters you have specified
+  tag: '#ThreatConnect'
+  tags:
+  - Threatconnect
+  - threatconnect
+  is_active: false
+  trigger_step_id: start
+  steps:
+  - type: start
+    name: Start
+    module: alerts
+    route: 77568336-33d5-41b0-9df3-7d84cd768d7a
+    requires_record: false
+    button_label: 'ThreatConnect: Get File Reputation'
+    next: get_file_reputation
+  - type: connector
+    name: Get File Reputation
+    step_variables:
+      output_data: '{{vars.result}}'
+    params:
+      owner: ''
+      indicator: 06EF3DD9A78380F9C5C7A009F0F5DB5C
+      includeAdditional: true
+    connector: threatconnect
+    operation: hunt_file
+- name: Get Email Reputation
+  uuid: 925485cf-14ff-46bf-be66-44534e685625
+  description: Retrieves the reputation for a specific email address using the ThreatConnect API based
+    on the email address and other input parameters you have specified.
+  tag: '#ThreatConnect'
+  tags:
+  - Threatconnect
+  - threatconnect
+  is_active: false
+  trigger_step_id: start
+  steps:
+  - type: start
+    name: Start
+    module: alerts
+    route: 4791c3fc-c6ab-4d44-afdf-c9b1775cc2f9
+    requires_record: false
+    button_label: 'ThreatConnect: Get Email Reputation'
+    next: get_email_reputation
+  - type: connector
+    name: Get Email Reputation
+    step_variables:
+      output_data: '{{vars.result}}'
+    params:
+      owner: ''
+      indicator: demo@test.com
+      includeAdditional: true
+    connector: threatconnect
+    operation: hunt_email
+- name: Get URL Reputation
+  uuid: 9c94f7e0-50fe-4a3f-b2c4-d218230abd76
+  description: Retrieves the reputation of a specific URL using the ThreatConnect API based on the URL
+    address and other input parameters you have specified.
+  tag: '#ThreatConnect'
+  tags:
+  - Threatconnect
+  - threatconnect
+  is_active: false
+  trigger_step_id: start
+  steps:
+  - type: start
+    name: Start
+    module: alerts
+    route: 518b5158-030c-411e-8800-bbaf7b580cc4
+    requires_record: false
+    button_label: 'ThreatConnect: Get URL Reputation'
+    next: get_url_reputation
+  - type: connector
+    name: Get URL Reputation
+    step_variables:
+      output_data: '{{vars.result}}'
+    params:
+      owner: ''
+      indicator: http://midiasomeluz.com.br/site/wp-includes/pomo/docx/
+      includeAdditional: true
+    connector: threatconnect
+    operation: hunt_url
+- name: Get Host Reputation
+  uuid: e94dc2b9-b892-4308-be85-289fb5956f16
+  description: Retrieves the reputation of a specific host using the ThreatConnect API based on the hostname
+    and other input parameters you have specified.
+  tag: '#ThreatConnect'
+  tags:
+  - Threatconnect
+  - threatconnect
+  is_active: false
+  trigger_step_id: start
+  steps:
+  - type: start
+    name: Start
+    module: alerts
+    route: 442394a4-3501-42d8-972b-097cd9d268bc
+    requires_record: false
+    button_label: 'ThreatConnect: Get Host Reputation'
+    next: get_host_reputation
+  - type: connector
+    name: Get Host Reputation
+    step_variables:
+      output_data: '{{vars.result}}'
+    params:
+      owner: ''
+      indicator: gumblar.cn
+      includeAdditional: true
+    connector: threatconnect
+    operation: hunt_host
+- name: List Indicator
+  uuid: ec6d14ed-d0e1-400b-9290-c3738be60457
+  description: Retrieves indicators using the ThreatConnect API based on the input parameters you have
+    specified
+  tag: '#ThreatConnect'
+  tags:
+  - Threatconnect
+  - threatconnect
+  is_active: false
+  trigger_step_id: start
+  steps:
+  - type: start
+    name: Start
+    module: alerts
+    route: 6d04866e-3af4-40d2-9b20-65654e04acc7
+    requires_record: false
+    button_label: 'ThreatConnect: List Indicator'
+    next: list_indicator
+  - type: connector
+    name: List Indicator
+    step_variables:
+      output_data: '{{vars.result}}'
+    params:
+      includeAdditional: true
+      resultLimit: 100
+      resultStart: 0
+    connector: threatconnect
+    operation: list_indicator
+- name: Invoke ThreatConnect REST API
+  uuid: 17ba6085-f5ee-428b-877c-9510f73569fa
+  description: Invokes a function to 'Get an API' endpoint on the ThreatConnect server based on the endpoint
+    you have specified.
+  tag: '#ThreatConnect'
+  tags:
+  - Threatconnect
+  - threatconnect
+  is_active: false
+  trigger_step_id: start
+  steps:
+  - type: start
+    name: Start
+    module: alerts
+    route: f860a6a7-6fb6-47a2-983f-b977eb5a5125
+    requires_record: false
+    button_label: 'ThreatConnect: Invoke ThreatConnect REST API'
+    next: invoke_threatconnect_rest_api
+  - type: connector
+    name: Invoke ThreatConnect REST API
+    step_variables:
+      output_data: '{{vars.result}}'
+    params:
+      endpoint: /api/v3/groups
+    connector: threatconnect
+    operation: invoke_api
+- name: Create Indicator
+  description: Creates an indicator with a rating, confidence, tags and a security label. An indicator
+    that already exists in the owner is updated.
+  tag: '#ThreatConnect'
+  tags:
+  - Threatconnect
+  - threatconnect
+  is_active: false
+  trigger_step_id: start
+  steps:
+  - type: start
+    name: Start
+    module: alerts
+    requires_record: false
+    button_label: 'ThreatConnect: Create Indicator'
+    next: create_indicator
+  - type: connector
+    name: Create Indicator
+    step_variables:
+      output_data: '{{vars.result}}'
+    params:
+      indicator_type: Address
+      indicator: 198.51.100.10
+      owner: ''
+      rating: '3.5'
+      confidence: 75
+      tags: Phishing
+      security_labels: TLP:AMBER
+      description: Reported by the SOC
+    connector: threatconnect
+    operation: create_indicator
+- name: Update Indicator
+  description: Adds a tag and raises the rating of an existing indicator.
+  tag: '#ThreatConnect'
+  tags:
+  - Threatconnect
+  - threatconnect
+  is_active: false
+  trigger_step_id: start
+  steps:
+  - type: start
+    name: Start
+    module: alerts
+    requires_record: false
+    button_label: 'ThreatConnect: Update Indicator'
+    next: update_indicator
+  - type: connector
+    name: Update Indicator
+    step_variables:
+      output_data: '{{vars.result}}'
+    params:
+      indicator: 198.51.100.10
+      owner: ''
+      rating: '4'
+      tags: Botnet
+      tag_mode: Add
+    connector: threatconnect
+    operation: update_indicator
+- name: Mark False Positive
+  description: Flags an indicator as a false positive.
+  tag: '#ThreatConnect'
+  tags:
+  - Threatconnect
+  - threatconnect
+  is_active: false
+  trigger_step_id: start
+  steps:
+  - type: start
+    name: Start
+    module: alerts
+    requires_record: false
+    button_label: 'ThreatConnect: Mark False Positive'
+    next: mark_false_positive
+  - type: connector
+    name: Mark False Positive
+    step_variables:
+      output_data: '{{vars.result}}'
+    params:
+      indicator: 198.51.100.10
+      owner: ''
+    connector: threatconnect
+    operation: mark_false_positive
+- name: List Owners
+  description: Lists the organizations, communities and sources the credentials can see.
+  tag: '#ThreatConnect'
+  tags:
+  - Threatconnect
+  - threatconnect
+  is_active: false
+  trigger_step_id: start
+  steps:
+  - type: start
+    name: Start
+    module: alerts
+    requires_record: false
+    button_label: 'ThreatConnect: List Owners'
+    next: list_owners
+  - type: connector
+    name: List Owners
+    step_variables:
+      output_data: '{{vars.result}}'
+    params: {}
+    connector: threatconnect
+    operation: list_owners
+- name: Get Indicators
+  uuid: 7a418899-3993-58c7-81f4-98c954074cd2
+  description: Manually fetch indicators from ThreatConnect. Diagnostic / on-demand.
+  tags:
+  - threatconnect
+  is_active: true
+  trigger_step_id: start
+  steps:
+  - type: start
+    name: Start
+    module: alerts
+    route: f5e447cd-5aa0-558d-8371-7c07cd895b7b
+    requires_record: false
+    button_label: 'ThreatConnect: Get Indicators'
+    next: fetch_indicators_bulk
+  - type: connector
+    name: Fetch Indicators Bulk
+    pickFromTenant: false
+    config: ''
+    params: {}
+    connector: threatconnect
+    operation: fetch_indicators
+- name: '> ThreatConnect > Fetch and Create'
+  uuid: d0757225-b380-5b28-8ad8-2ea96d172f7c
+  description: Fetch and create indicators from ThreatConnect. Called as a child workflow.
+  tags:
+  - dataingestion
+  - fetch
+  - create
+  - threatconnect
+  is_active: true
+  trigger_step_id: start
+  parameters:
+  - lastPullTime
+  steps:
+  - type: start
+    name: Start
+    configuration_schema:
+    - title: Indicator Type Filter
+      name: indicator_type
+      type: select
+      required: false
+      editable: true
+      visible: true
+      options:
+      - Any
+      - Address
+      - Host
+      - URL
+      - EmailAddress
+      - File
+      value: Any
+      tooltip: Restrict ingestion to a single ThreatConnect indicator type. 'Any' pulls all types.
+    - title: Owner Filter (Optional)
+      name: owner
+      type: text
+      required: false
+      editable: true
+      visible: true
+      tooltip: Restrict ingestion to indicators owned by this Source/Community/Organization. Defaults
+        to the connector's Default Organization.
+    - title: Ingestion Begin From
+      name: last_pull_datetime
+      type: datetime
+      required: false
+      editable: true
+      visible: true
+      tooltip: Pull only indicators modified at or after this datetime. Updated automatically by the scheduler
+        after each run.
+    - title: Reputation
+      name: reputation
+      type: select
+      required: true
+      editable: true
+      visible: true
+      options:
+      - Good
+      - Suspicious
+      - Malicious
+      - No Reputation Available
+      - TBD
+      value: Suspicious
+      tooltip: Default reputation applied to ingested indicators.
+    - title: TLP
+      name: tlp
+      type: select
+      required: false
+      editable: true
+      visible: true
+      options:
+      - Red
+      - Amber
+      - Green
+      - White
+      value: Amber
+    - title: Confidence
+      name: confidence
+      type: integer
+      required: false
+      editable: true
+      visible: true
+      value: 75
+      validation:
+        minlength: 0
+        maxlength: 100
+      tooltip: Default confidence applied when an indicator does not carry one.
+    - title: Maximum Age (in days)
+      name: expiry
+      type: integer
+      required: false
+      editable: true
+      visible: true
+      value: 30
+    - title: Per-Run Limit (Optional)
+      name: limit
+      type: integer
+      required: false
+      editable: true
+      visible: true
+      tooltip: Cap indicators ingested per run. Leave blank for full pagination.
+    next: configuration
+  - type: set_variable
+    name: Configuration
+    vars:
+      indicator_type: Any
+      owner: ''
+      last_pull_datetime: 0
+      reputation: Suspicious
+      tlp: Amber
+      confidence: 75
+      expiry: 30
+      limit: 0
+      tlp_map: '{''Red'': {{''TrafficLightProtocol'' | picklist(''Red'') }}, ''Amber'': {{''TrafficLightProtocol''
+        | picklist(''Amber'') }}, ''Green'': {{''TrafficLightProtocol'' | picklist(''Green'') }}, ''White'':
+        {{''TrafficLightProtocol'' | picklist(''White'') }}}'
+      reputation_map: '{''Good'': {{''IndicatorReputation'' | picklist(''Good'') }}, ''Malicious'': {{''IndicatorReputation''
+        | picklist(''Malicious'') }}, ''Suspicious'': {{''IndicatorReputation'' | picklist(''Suspicious'')
+        }}, ''TBD'': {{''IndicatorReputation'' | picklist(''TBD'') }}, ''No Reputation Available'': {{''IndicatorReputation''
+        | picklist(''No Reputation Available'') }}}'
+      type_of_feed_map: '{''Address'': {{''ThreatIntelFeedType'' | picklist(''IPv4 Address'') }}, ''Host'':
+        {{''ThreatIntelFeedType'' | picklist(''Domain'') }}, ''EmailAddress'': {{''ThreatIntelFeedType''
+        | picklist(''Email Address'') }}, ''URL'': {{''ThreatIntelFeedType'' | picklist(''URL'') }}, ''File'':
+        {{''ThreatIntelFeedType'' | picklist(''FileHash-SHA256'') }}, ''FileMD5'': {{''ThreatIntelFeedType''
+        | picklist(''FileHash-MD5'') }}, ''FileSHA1'': {{''ThreatIntelFeedType'' | picklist(''FileHash-SHA1'')
+        }}}'
+    next: is_data_only_for_mapping
+  - type: decision
+    name: Is Data Only For Mapping
+    conditions:
+    - display: Yes For Mapping
+      when: '{{ vars.request.env_setup == true }}'
+      next: return_sample_data
+    - display: No For Ingestion
+      default: true
+      next: fetch_indicators
+  - type: set_variable
+    name: Return Sample Data
+    vars:
+      data: "[\n  {\n    \"value\": \"192.0.2.1\",\n    \"type\": \"ip\",\n    \"score\": 80,\n    \"\
+        risk_string\": \"sample\"\n  },\n  {\n    \"value\": \"203.0.113.5\",\n    \"type\": \"ip\",\n\
+        \    \"score\": 65,\n    \"risk_string\": \"sample\"\n  }\n]"
+  - type: connector
+    name: Fetch Indicators
+    pickFromTenant: false
+    config: ''
+    params:
+      indicator_type: '{{vars.indicator_type}}'
+      owner: '{{vars.owner}}'
+      modified_since: '{{vars.input.params.lastPullTime}}'
+      page_size: 500
+      limit: '{{vars.limit}}'
+    connector: threatconnect
+    operation: fetch_indicators
+    next: build_feed_list
+  - type: set_variable
+    name: Build Feed List
+    vars:
+      data: '{{vars.steps.Fetch_Indicators.indicators}}'
+      currentPullTime: '{{ arrow.utcnow().isoformat() }}'
+    next: create_record
+  - type: ingest_bulk_feed
+    name: Create Record
+    when: '{{vars.data | length > 0}}'
+    resource:
+      value: '{% if vars.item.type == ''File'' %}{{ vars.item.summary.split('' : '')|last }}{% else %}{{
+        vars.item.summary }}{% endif %}'
+      typeOfFeed: '{{ ((''FileMD5'' if (vars.item.summary.split('' : '')|last|length) == 32 else ''FileSHA1''
+        if (vars.item.summary.split('' : '')|last|length) == 40 else ''File'') if vars.item.type == ''File''
+        else vars.item.type) | resolveRange(vars.type_of_feed_map) }}'
+      source: ThreatConnect
+      sourceId: '{{vars.item.id}}'
+      tLP: '{% if vars.tlp %}{{ vars.tlp | resolveRange(vars.tlp_map) }}{% else %}None{% endif %}'
+      reputation: '{% if vars.reputation %}{{ vars.reputation | resolveRange(vars.reputation_map) }}{%
+        else %}None{% endif %}'
+      confidence: '{% if vars.confidence %}{{ vars.confidence }}{% else %}{{ (vars.item.confidence | int)
+        }}{% endif %}'
+      expiresOn: '{% if vars.expiry %}{{ arrow.utcnow().int_timestamp + (vars.expiry | int)*24*60*60 }}{%
+        else %}None{% endif %}'
+      sourceData: '{{vars.item | toJSON}}'
+      description: '{% if vars.item.description %}ThreatConnect: {{vars.item.description}}{% else %}ThreatConnect
+        indicator{% endif %}'
+      __replace: ''
+    collection: /api/ingest-feeds/threat_intel_feeds
+    for_each:
+      item: '{{vars.data}}'
+      __bulk: true
+      condition: ''
+      batch_size: 100
+    next: save_result
+  - type: set_variable
+    name: Save Result
+    vars:
+      currentPullTime: '{{vars.currentPullTime}}'
+- name: ThreatConnect > Ingest
+  uuid: 31a22282-653d-5315-8a2f-da3a547baa1d
+  description: Scheduled ingestion orchestrator for ThreatConnect. Maintains per-install LastPullTime
+    macro.
+  tags:
+  - dataingestion
+  - ingest
+  - threatconnect
+  is_active: true
+  trigger_step_id: start
+  steps:
+  - type: start
+    name: Start
+    next: configuration
+  - type: set_variable
+    name: Configuration
+    vars:
+      fetchTime: '0'
+      pullTimeMacro: ThreatconnectLastPullTime_{{vars['audit_info']['cyops_playbook_iri'].split('/')[-1].replace('-','_')}}
+    next: get_macro_value
+  - type: connector
+    name: Get Macro Value
+    params:
+      iri: /api/wf/api/dynamic-variable/?name={{vars.pullTimeMacro}}
+      body: ''
+      method: GET
+    connector: cyops_utilities
+    operation: make_cyops_request
+    next: extract_value_from_response
+  - type: set_variable
+    name: Extract Value from Response
+    vars:
+      lastPullTime: '{% if (vars.steps.Get_Macro_Value.data[''hydra:member''] | length) > 0 %}{{ vars.steps.Get_Macro_Value.data[''hydra:member''][0].value
+        }}{% else %}0{% endif %}'
+    next: fetch_indicators
+  - type: workflow_reference
+    name: Fetch Indicators
+    apply_async: false
+    child_args:
+      lastPullTime: '{{vars.lastPullTime}}'
+    workflowReference: /api/3/workflows/d0757225-b380-5b28-8ad8-2ea96d172f7c
+    next: update_pull_time
+  - type: connector
+    name: Update Pull Time
+    params:
+      macro: '{{vars.pullTimeMacro}}'
+      value: '{{vars.steps.Fetch_Indicators.currentPullTime}}'
+    connector: cyops_utilities
+    operation: updatemacro
+    operationTitle: 'CyOPs: Update Macro'

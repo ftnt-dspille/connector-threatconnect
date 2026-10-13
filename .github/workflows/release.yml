@@ -1,0 +1,48 @@
+name: release
+
+# Tag `v2.2.0` builds the bundle for info.json version 2.2.0 and attaches it to a
+# GitHub release. info.json stays the source of truth for the version: the check
+# below refuses a tag that disagrees with it.
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Tag must match info.json version
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          info=$(python3 -c "import json;print(json.load(open('threatconnect/info.json'))['version'])")
+          if [ "$tag" != "$info" ]; then
+            echo "::error::tag $GITHUB_REF_NAME does not match info.json version $info"
+            exit 1
+          fi
+          echo "version=$info" >> "$GITHUB_ENV"
+
+      - name: Sanity checks
+        run: python3 .github/workflows/sanity_checks_utcs.py
+
+      - name: Tests
+        run: |
+          pip install -r tests/requirements.txt
+          python3 -m pytest
+
+      - name: Build bundle
+        run: ./scripts/package.sh
+
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/threatconnect-${{ env.version }}.tgz
+          body_path: threatconnect/release_notes.md

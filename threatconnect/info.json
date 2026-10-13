@@ -1,0 +1,1776 @@
+{
+  "name": "threatconnect",
+  "label": "ThreatConnect",
+  "version": "2.2.0",
+  "description": "ThreatConnect connector for the v3 REST API. Look up indicator reputation, list, create, update and delete indicators, flag false positives and record observations, browse owners, groups and tags, pull indicators in bulk, and run scheduled threat-intel ingestion. Any other endpoint can be called with Invoke ThreatConnect REST API, which signs the request for you. Authenticate using HMAC (Access ID + Secret Key) or an API token (PAT). <br/><br/>Ingestion has a dependency on the <a href=\"/content-hub/all-content/?contentType=solutionpack&amp;tag=ThreatIntelManagement\" target=\"_blank\" rel=\"noopener\">Threat Intel Management Solution Pack</a>.",
+  "publisher": "Fortinet",
+  "cs_approved": true,
+  "cs_compatible": true,
+  "category": "Threat Intelligence",
+  "help_online": "https://docs.fortinet.com/document/fortisoar/2.1.0/threatconnect/415/threatconnect-v2-1-0",
+  "icon_small_name": "small.png",
+  "icon_large_name": "large.png",
+  "ingestion_supported": true,
+  "ingestion_modes": [
+    "scheduled"
+  ],
+  "tags": [
+    "ThreatIntel",
+    "ThreatFeedsIngestion"
+  ],
+  "ingestion_config_schema": [
+    {
+      "title": "Indicator Type Filter",
+      "name": "indicator_type",
+      "type": "select",
+      "required": false,
+      "editable": true,
+      "visible": true,
+      "options": [
+        "Any",
+        "Address",
+        "Host",
+        "URL",
+        "EmailAddress",
+        "File"
+      ],
+      "value": "Any",
+      "tooltip": "Restrict ingestion to a single ThreatConnect indicator type. 'Any' pulls all types."
+    },
+    {
+      "title": "Owner Filter (Optional)",
+      "name": "owner",
+      "type": "text",
+      "required": false,
+      "editable": true,
+      "visible": true,
+      "tooltip": "Restrict ingestion to indicators owned by this Source/Community/Organization. Defaults to the connector's Default Organization."
+    },
+    {
+      "title": "Ingestion Begin From",
+      "name": "last_pull_datetime",
+      "type": "datetime",
+      "required": false,
+      "editable": true,
+      "visible": true,
+      "tooltip": "Pull only indicators modified at or after this datetime. Updated automatically by the scheduler after each run."
+    },
+    {
+      "title": "Reputation",
+      "name": "reputation",
+      "type": "select",
+      "required": true,
+      "editable": true,
+      "visible": true,
+      "options": [
+        "Good",
+        "Suspicious",
+        "Malicious",
+        "No Reputation Available",
+        "TBD"
+      ],
+      "value": "Suspicious",
+      "tooltip": "Default reputation applied to ingested indicators."
+    },
+    {
+      "title": "TLP",
+      "name": "tlp",
+      "type": "select",
+      "required": false,
+      "editable": true,
+      "visible": true,
+      "options": [
+        "Red",
+        "Amber",
+        "Green",
+        "White"
+      ],
+      "value": "Amber"
+    },
+    {
+      "title": "Confidence",
+      "name": "confidence",
+      "type": "integer",
+      "required": false,
+      "editable": true,
+      "visible": true,
+      "value": 75,
+      "validation": {
+        "minlength": 0,
+        "maxlength": 100
+      },
+      "tooltip": "Default confidence applied when an indicator does not carry one."
+    },
+    {
+      "title": "Maximum Age (in days)",
+      "name": "expiry",
+      "type": "integer",
+      "required": false,
+      "editable": true,
+      "visible": true,
+      "value": 30
+    },
+    {
+      "title": "Per-Run Limit (Optional)",
+      "name": "limit",
+      "type": "integer",
+      "required": false,
+      "editable": true,
+      "visible": true,
+      "tooltip": "Cap indicators ingested per run. Leave blank for full pagination."
+    }
+  ],
+  "ingest_mapping_template": {
+    "value": "{{ vars.summary or vars.value }}",
+    "type_of_feed": "{{ vars.type }}",
+    "source": "ThreatConnect",
+    "source_id": "{{ vars.id }}",
+    "reputation": "{% if vars.reputation %}{{ vars.reputation }}{% endif %}",
+    "tlp": "{% if vars.tlp %}{{ vars.tlp }}{% endif %}",
+    "confidence": "{% if vars.confidence %}{{ vars.confidence }}{% else %}{{ vars.confidence_default }}{% endif %}",
+    "description": "{% if vars.description %}{{ vars.description }}{% else %}ThreatConnect indicator (rating={{ vars.rating }}, confidence={{ vars.confidence }}){% endif %}",
+    "created_on": "{% if vars.dateAdded %}{{ vars.dateAdded }}{% else %}{{ epoch_to_datetime(arrow.utcnow().int_timestamp) }}{% endif %}",
+    "modified_on": "{% if vars.lastModified %}{{ vars.lastModified }}{% else %}{{ epoch_to_datetime(arrow.utcnow().int_timestamp) }}{% endif %}",
+    "valid_from": "{% if vars.dateAdded %}{{ vars.dateAdded }}{% else %}{{ epoch_to_datetime(arrow.utcnow().int_timestamp) }}{% endif %}",
+    "valid_until": "{% if vars.expiry %}{{ epoch_to_datetime(arrow.utcnow().int_timestamp + (vars.expiry | int)*24*60*60) }}{% else %}None{% endif %}",
+    "expires_on": "{% if vars.expiry %}{{ epoch_to_datetime(arrow.utcnow().int_timestamp + (vars.expiry | int)*24*60*60) }}{% else %}None{% endif %}",
+    "sourceData": "{{ vars | toJSON }}",
+    "__replace": ""
+  },
+  "configuration": {
+    "fields": [
+      {
+        "title": "Server URL",
+        "required": true,
+        "editable": true,
+        "visible": true,
+        "type": "text",
+        "name": "api_base_url",
+        "description": "The URL of the ThreatConnect server (e.g. https://app.threatconnect.com)."
+      },
+      {
+        "title": "Authentication Type",
+        "name": "auth_type",
+        "type": "select",
+        "required": true,
+        "editable": true,
+        "visible": true,
+        "options": [
+          "HMAC (Access ID + Secret Key)",
+          "Bearer Token"
+        ],
+        "value": "HMAC (Access ID + Secret Key)",
+        "tooltip": "HMAC: per-request signature using Access ID + Secret Key. The signature covers the full request target (path + query string), per TC's documented scheme. Bearer Token: ThreatConnect Personal Access Token sent as 'Authorization: TC-Token <token>' (TC's documented token scheme).",
+        "description": "Authentication method used to call the ThreatConnect v3 API.",
+        "onchange": {
+          "HMAC (Access ID + Secret Key)": [
+            {
+              "title": "Access ID",
+              "name": "api_access_id",
+              "type": "password",
+              "required": true,
+              "editable": true,
+              "visible": true,
+              "value": "",
+              "description": "Access ID for your ThreatConnect API user."
+            },
+            {
+              "title": "Secret Key",
+              "name": "api_secret_key",
+              "type": "password",
+              "required": true,
+              "editable": true,
+              "visible": true,
+              "value": "",
+              "description": "Secret Key for your ThreatConnect API user. Used to sign each request."
+            }
+          ],
+          "Bearer Token": [
+            {
+              "title": "Bearer Token",
+              "name": "bearer_token",
+              "type": "password",
+              "required": true,
+              "editable": true,
+              "visible": true,
+              "value": "",
+              "description": "ThreatConnect Personal Access Token. Sent as 'Authorization: TC-Token <token>'."
+            }
+          ]
+        }
+      },
+      {
+        "title": "Default Organization",
+        "required": false,
+        "editable": true,
+        "visible": true,
+        "type": "text",
+        "name": "api_default_org",
+        "tooltip": "Default organization (owner name) used when an action does not pass an explicit owner.",
+        "description": "Default organization (owner name) used when an action does not pass an explicit owner."
+      },
+      {
+        "title": "Verify SSL",
+        "required": false,
+        "editable": true,
+        "visible": true,
+        "type": "checkbox",
+        "name": "verify",
+        "value": true,
+        "description": "Verify the TLS certificate of the ThreatConnect server. Default true."
+      }
+    ]
+  },
+  "operations": [
+    {
+      "operation": "hunt_ip",
+      "title": "Get IP Reputation",
+      "category": "investigation",
+      "annotation": "ip_reputation",
+      "description": "Retrieves the reputation for a specific IP address using the ThreatConnect API based on the IP address and other input parameters you have specified.",
+      "enabled": true,
+      "parameters": [
+        {
+          "title": "IP Address",
+          "required": true,
+          "editable": true,
+          "visible": true,
+          "type": "text",
+          "name": "indicator",
+          "description": "Specify the IP address whose reputation information you want to retrieve using the ThreatConnect API."
+        },
+        {
+          "title": "Owner",
+          "name": "owner",
+          "type": "select",
+          "required": false,
+          "editable": true,
+          "visible": true,
+          "description": "(Optional) Owner (organization, community or source) to act on. Pick from the list or enter a name. Overrides the 'Default Organization' of the configuration.",
+          "tooltip": "(Optional) Owner (organization, community or source) to act on. Pick from the list or enter a name. Overrides the 'Default Organization' of the configuration.",
+          "apiOperation": "get_owner_options"
+        },
+        {
+          "title": "Include Additional Params",
+          "required": false,
+          "editable": true,
+          "visible": true,
+          "type": "checkbox",
+          "name": "includeAdditional",
+          "value": true,
+          "onchange": {
+            "true": [
+              {
+                "title": "Include Fields",
+                "required": true,
+                "editable": true,
+                "visible": true,
+                "type": "multiselect",
+                "name": "include_params",
+                "value": true,
+                "options": [
+                  "Tags",
+                  "Threat Assess",
+                  "Associated Groups"
+                ],
+                "onchange": {
+                  "Associated Groups": [
+                    {
+                      "title": "Attributes",
+                      "required": false,
+                      "editable": true,
+                      "visible": true,
+                      "type": "checkbox",
+                      "name": "attributes",
+                      "value": true,
+                      "tooltip": "If you choose Associated Groups, then select the Attributes option to include the 'associatedGroups.attributes' keys in the response of this operation",
+                      "description": "If you choose Associated Groups, then select the Attributes option to include the 'associatedGroups.attributes' keys in the response of this operation."
+                    }
+                  ]
+                },
+                "tooltip": "If you select this option, then from the Include Fields list, select one or more parameters whose keys you want to include in the response of this operation",
+                "description": "If you select this option, then from the Include Fields list, select one or more parameters whose keys you want to include in the response of this operation. You can choose any or all of the following options: Tags, Threat Assess, and/or Associated Groups."
+              }
+            ]
+          },
+          "tooltip": "Select this option to include the 'tags', 'threatAssess' and 'associatedGroups.attributes' keys in the response of this operation.",
+          "description": "(Optional) Select this option to include the 'tags', 'threatAssess' and 'associatedGroups.attributes' keys in the response of this operation."
+        }
+      ],
+      "conditional_output_schema": [
+        {
+          "condition": "{{this['includeAdditional'] === true}}",
+          "output_schema": {
+            "data": {
+              "id": "",
+              "ownerName": "",
+              "dateAdded": "",
+              "webLink": "",
+              "type": "",
+              "lastModified": "",
+              "summary": "",
+              "privateFlag": "",
+              "active": "",
+              "activeLocked": "",
+              "ip": "",
+              "rating": "",
+              "confidence": "",
+              "tags": {
+                "data": [
+                  {
+                    "id": "",
+                    "name": "",
+                    "lastUsed": ""
+                  }
+                ]
+              },
+              "associatedGroups": {},
+              "threatAssessScore": "",
+              "threatAssessRating": "",
+              "threatAssessConfidence": ""
+            },
+            "status": ""
+          }
+        },
+        {
+          "condition": "{{true}}",
+          "output_schema": {
+            "data": {
+              "id": "",
+              "ownerName": "",
+              "dateAdded": "",
+              "webLink": "",
+              "type": "",
+              "lastModified": "",
+              "summary": "",
+              "privateFlag": "",
+              "active": "",
+              "activeLocked": "",
+              "ip": "",
+              "rating": "",
+              "confidence": ""
+            },
+            "status": ""
+          }
+        }
+      ]
+    },
+    {
+      "operation": "hunt_file",
+      "title": "Get File Reputation",
+      "category": "investigation",
+      "annotation": "file_reputation",
+      "description": "Retrieves the reputation of a specific file hash using the ThreatConnect API based on the file hash and other input parameters you have specified.",
+      "enabled": true,
+      "parameters": [
+        {
+          "title": "File Hash",
+          "required": true,
+          "editable": true,
+          "visible": true,
+          "type": "text",
+          "name": "indicator",
+          "description": "Specify the file hash whose reputation information you want to retrieve using the ThreatConnect API."
+        },
+        {
+          "title": "Owner",
+          "name": "owner",
+          "type": "select",
+          "required": false,
+          "editable": true,
+          "visible": true,
+          "description": "(Optional) Owner (organization, community or source) to act on. Pick from the list or enter a name. Overrides the 'Default Organization' of the configuration.",
+          "tooltip": "(Optional) Owner (organization, community or source) to act on. Pick from the list or enter a name. Overrides the 'Default Organization' of the configuration.",
+          "apiOperation": "get_owner_options"
+        },
+        {
+          "title": "Include Additional Params",
+          "required": false,
+          "editable": true,
+          "visible": true,
+          "type": "checkbox",
+          "name": "includeAdditional",
+          "value": true,
+          "onchange": {
+            "true": [
+              {
+                "title": "Include Fields",
+                "required": true,
+                "editable": true,
+                "visible": true,
+                "type": "multiselect",
+                "name": "include_params",
+                "value": true,
+                "options": [
+                  "Tags",
+                  "Threat Assess",
+                  "Associated Groups"
+                ],
+                "onchange": {
+                  "Associated Groups": [
+                    {
+                      "title": "Attributes",
+                      "required": false,
+                      "editable": true,
+                      "visible": true,
+                      "type": "checkbox",
+                      "name": "attributes",
+                      "value": true,
+                      "tooltip": "If you choose Associated Groups, then select the Attributes option to include the 'associatedGroups.attributes' keys in the response of this operation",
+                      "description": "If you choose Associated Groups, then select the Attributes option to include the 'associatedGroups.attributes' keys in the response of this operation."
+                    }
+                  ]
+                },
+                "tooltip": "If you select this option, then from the Include Fields list, select one or more parameters whose keys you want to include in the response of this operation",
+                "description": "If you select this option, then from the Include Fields list, select one or more parameters whose keys you want to include in the response of this operation. You can choose any or all of the following options: Tags, Threat Assess, and/or Associated Groups"
+              }
+            ]
+          },
+          "tooltip": "Select this option to include the 'tags', 'threatAssess' and 'associatedGroups.attributes' keys in the response of this operation.",
+          "description": "(Optional) Select this option to include the 'tags', 'threatAssess' and 'associatedGroups.attributes' keys in the response of this operation."
+        }
+      ],
+      "conditional_output_schema": [
+        {
+          "condition": "{{this['includeAdditional'] === true}}",
+          "output_schema": {
+            "data": {
+              "id": "",
+              "ownerName": "",
+              "dateAdded": "",
+              "webLink": "",
+              "type": "",
+              "lastModified": "",
+              "summary": "",
+              "privateFlag": "",
+              "active": "",
+              "activeLocked": "",
+              "md5": "",
+              "confidence": "",
+              "tags": {
+                "data": [
+                  {
+                    "id": "",
+                    "name": "",
+                    "lastUsed": ""
+                  }
+                ]
+              },
+              "associatedGroups": {},
+              "threatAssessScore": "",
+              "threatAssessRating": "",
+              "threatAssessConfidence": ""
+            },
+            "status": ""
+          }
+        },
+        {
+          "condition": "{{true}}",
+          "output_schema": {
+            "data": {
+              "id": "",
+              "ownerName": "",
+              "dateAdded": "",
+              "webLink": "",
+              "type": "",
+              "lastModified": "",
+              "summary": "",
+              "privateFlag": "",
+              "active": "",
+              "activeLocked": "",
+              "md5": "",
+              "confidence": ""
+            },
+            "status": ""
+          }
+        }
+      ]
+    },
+    {
+      "operation": "hunt_email",
+      "title": "Get Email Reputation",
+      "category": "investigation",
+      "annotation": "email_reputation",
+      "description": "Retrieves the reputation for a specific email address using the ThreatConnect API based on the email address and other input parameters you have specified.",
+      "enabled": true,
+      "parameters": [
+        {
+          "title": "Email Address",
+          "required": true,
+          "editable": true,
+          "visible": true,
+          "type": "text",
+          "name": "indicator",
+          "description": "Specify the email address whose reputation information you want to retrieve using the ThreatConnect API."
+        },
+        {
+          "title": "Owner",
+          "name": "owner",
+          "type": "select",
+          "required": false,
+          "editable": true,
+          "visible": true,
+          "description": "(Optional) Owner (organization, community or source) to act on. Pick from the list or enter a name. Overrides the 'Default Organization' of the configuration.",
+          "tooltip": "(Optional) Owner (organization, community or source) to act on. Pick from the list or enter a name. Overrides the 'Default Organization' of the configuration.",
+          "apiOperation": "get_owner_options"
+        },
+        {
+          "title": "Include Additional Params",
+          "required": false,
+          "editable": true,
+          "visible": true,
+          "type": "checkbox",
+          "name": "includeAdditional",
+          "value": true,
+          "onchange": {
+            "true": [
+              {
+                "title": "Include Fields",
+                "required": true,
+                "editable": true,
+                "visible": true,
+                "type": "multiselect",
+                "name": "include_params",
+                "value": true,
+                "options": [
+                  "Tags",
+                  "Threat Assess",
+                  "Associated Groups"
+                ],
+                "onchange": {
+                  "Associated Groups": [
+                    {
+                      "title": "Attributes",
+                      "required": false,
+                      "editable": true,
+                      "visible": true,
+                      "type": "checkbox",
+                      "name": "attributes",
+                      "value": true,
+                      "tooltip": "If you choose Associated Groups, then select the Attributes option to include the 'associatedGroups.attributes' keys in the response of this operation",
+                      "description": "(Optional) If you choose Associated Groups, then select the Attributes option to include the 'associatedGroups.attributes' keys in the response of this operation"
+                    }
+                  ]
+                },
+                "tooltip": "If you select this option, then from the Include Fields list, select one or more parameters whose keys you want to include in the response of this operation",
+                "description": "If you select this option, then from the Include Fields list, select one or more parameters whose keys you want to include in the response of this operation. You can choose any or all of the following options: Tags, Threat Assess, and/or Associated Groups."
+              }
+            ]
+          },
+          "tooltip": "Select this option to include the 'tags', 'threatAssess' and 'associatedGroups.attributes' keys in the response of this operation.",
+          "description": "(Optional) Select this option to include the 'tags', 'threatAssess' and 'associatedGroups.attributes' keys in the response of this operation."
+        }
+      ],
+      "conditional_output_schema": [
+        {
+          "condition": "{{this['includeAdditional'] === true}}",
+          "output_schema": {
+            "data": {
+              "id": "",
+              "ownerName": "",
+              "dateAdded": "",
+              "webLink": "",
+              "type": "",
+              "lastModified": "",
+              "summary": "",
+              "privateFlag": "",
+              "active": "",
+              "activeLocked": "",
+              "address": "",
+              "rating": "",
+              "confidence": "",
+              "tags": {
+                "data": [
+                  {
+                    "id": "",
+                    "name": "",
+                    "lastUsed": ""
+                  }
+                ]
+              },
+              "associatedGroups": {},
+              "threatAssessScore": "",
+              "threatAssessRating": "",
+              "threatAssessConfidence": ""
+            },
+            "status": ""
+          }
+        },
+        {
+          "condition": "{{true}}",
+          "output_schema": {
+            "data": {
+              "id": "",
+              "ownerName": "",
+              "dateAdded": "",
+              "webLink": "",
+              "type": "",
+              "lastModified": "",
+              "summary": "",
+              "privateFlag": "",
+              "active": "",
+              "activeLocked": "",
+              "rating": "",
+              "address": "",
+              "confidence": ""
+            },
+            "status": ""
+          }
+        }
+      ]
+    },
+    {
+      "operation": "hunt_url",
+      "title": "Get URL Reputation",
+      "category": "investigation",
+      "annotation": "url_reputation",
+      "description": "Retrieves the reputation of a specific URL using the ThreatConnect API based on the URL address and other input parameters you have specified.",
+      "enabled": true,
+      "parameters": [
+        {
+          "title": "URL",
+          "required": true,
+          "editable": true,
+          "visible": true,
+          "type": "text",
+          "name": "indicator",
+          "description": "Specify the URL whose reputation information you want to retrieve using the ThreatConnect API."
+        },
+        {
+          "title": "Owner",
+          "name": "owner",
+          "type": "select",
+          "required": false,
+          "editable": true,
+          "visible": true,
+          "description": "(Optional) Owner (organization, community or source) to act on. Pick from the list or enter a name. Overrides the 'Default Organization' of the configuration.",
+          "tooltip": "(Optional) Owner (organization, community or source) to act on. Pick from the list or enter a name. Overrides the 'Default Organization' of the configuration.",
+          "apiOperation": "get_owner_options"
+        },
+        {
+          "title": "Include Additional Params",
+          "required": false,
+          "editable": true,
+          "visible": true,
+          "type": "checkbox",
+          "name": "includeAdditional",
+          "value": true,
+          "onchange": {
+            "true": [
+              {
+                "title": "Include Fields",
+                "required": true,
+                "editable": true,
+                "visible": true,
+                "type": "multiselect",
+                "name": "include_params",
+                "value": true,
+                "options": [
+                  "Tags",
+                  "Threat Assess",
+                  "Associated Groups"
+                ],
+                "onchange": {
+                  "Associated Groups": [
+                    {
+                      "title": "Attributes",
+                      "required": false,
+                      "editable": true,
+                      "visible": true,
+                      "type": "checkbox",
+                      "name": "attributes",
+                      "value": true,
+                      "tooltip": "If you choose Associated Groups, then select the Attributes option to include the 'associatedGroups.attributes' keys in the response of this operation",
+                      "description": "(Optional) If you choose Associated Groups, then select the Attributes option to include the 'associatedGroups.attributes' keys in the response of this operation"
+                    }
+                  ]
+                },
+                "tooltip": "If you select this option, then from the Include Fields list, select one or more parameters whose keys you want to include in the response of this operation",
+                "description": "If you select this option, then from the Include Fields list, select one or more parameters whose keys you want to include in the response of this operation. You can choose any or all of the following options: Tags, Threat Assess, and/or Associated Groups."
+              }
+            ]
+          },
+          "tooltip": "Select this option to include the 'tags', 'threatAssess' and 'associatedGroups.attributes' keys in the response of this operation.",
+          "description": "(Optional) Select this option to include the 'tags', 'threatAssess' and 'associatedGroups.attributes' keys in the response of this operation."
+        }
+      ],
+      "conditional_output_schema": [
+        {
+          "condition": "{{this['includeAdditional'] === true}}",
+          "output_schema": {
+            "data": {
+              "id": "",
+              "ownerName": "",
+              "dateAdded": "",
+              "webLink": "",
+              "type": "",
+              "lastModified": "",
+              "summary": "",
+              "privateFlag": "",
+              "active": "",
+              "activeLocked": "",
+              "text": "",
+              "rating": "",
+              "confidence": "",
+              "tags": {
+                "data": [
+                  {
+                    "id": "",
+                    "name": "",
+                    "lastUsed": ""
+                  }
+                ]
+              },
+              "associatedGroups": {},
+              "threatAssessScore": "",
+              "threatAssessRating": "",
+              "threatAssessConfidence": ""
+            },
+            "status": ""
+          }
+        },
+        {
+          "condition": "{{true}}",
+          "output_schema": {
+            "data": {
+              "id": "",
+              "ownerName": "",
+              "dateAdded": "",
+              "webLink": "",
+              "type": "",
+              "lastModified": "",
+              "summary": "",
+              "privateFlag": "",
+              "active": "",
+              "activeLocked": "",
+              "text": "",
+              "rating": "",
+              "confidence": ""
+            },
+            "status": ""
+          }
+        }
+      ]
+    },
+    {
+      "operation": "hunt_host",
+      "title": "Get Host Reputation",
+      "category": "investigation",
+      "annotation": "host_reputation",
+      "description": "Retrieves the reputation of a specific host using the ThreatConnect API based on the hostname and other input parameters you have specified.",
+      "enabled": true,
+      "parameters": [
+        {
+          "title": "Host",
+          "required": true,
+          "editable": true,
+          "visible": true,
+          "type": "text",
+          "name": "indicator",
+          "description": "Specify the host whose reputation information you want to retrieve using the ThreatConnect API"
+        },
+        {
+          "title": "Owner",
+          "name": "owner",
+          "type": "select",
+          "required": false,
+          "editable": true,
+          "visible": true,
+          "description": "(Optional) Owner (organization, community or source) to act on. Pick from the list or enter a name. Overrides the 'Default Organization' of the configuration.",
+          "tooltip": "(Optional) Owner (organization, community or source) to act on. Pick from the list or enter a name. Overrides the 'Default Organization' of the configuration.",
+          "apiOperation": "get_owner_options"
+        },
+        {
+          "title": "Include Additional Params",
+          "required": false,
+          "editable": true,
+          "visible": true,
+          "type": "checkbox",
+          "name": "includeAdditional",
+          "value": true,
+          "onchange": {
+            "true": [
+              {
+                "title": "Include Fields",
+                "required": true,
+                "editable": true,
+                "visible": true,
+                "type": "multiselect",
+                "name": "include_params",
+                "value": true,
+                "options": [
+                  "Tags",
+                  "Threat Assess",
+                  "Associated Groups"
+                ],
+                "onchange": {
+                  "Associated Groups": [
+                    {
+                      "title": "Attributes",
+                      "required": false,
+                      "editable": true,
+                      "visible": true,
+                      "type": "checkbox",
+                      "name": "attributes",
+                      "value": true,
+                      "tooltip": "If you choose Associated Groups, then select the Attributes option to include the 'associatedGroups.attributes' keys in the response of this operation",
+                      "description": "(Optional) If you choose Associated Groups, then select the Attributes option to include the 'associatedGroups.attributes' keys in the response of this operation"
+                    }
+                  ]
+                },
+                "tooltip": "If you select this option, then from the Include Fields list, select one or more parameters whose keys you want to include in the response of this operation",
+                "description": "If you select this option, then from the Include Fields list, select one or more parameters whose keys you want to include in the response of this operation. You can choose any or all of the following options: Tags, Threat Assess, and/or Associated Groups."
+              }
+            ]
+          },
+          "tooltip": "Select this option to include the 'tags', 'threatAssess' and 'associatedGroups.attributes' keys in the response of this operation.",
+          "description": "(Optional) Select this option to include the 'tags', 'threatAssess' and 'associatedGroups.attributes' keys in the response of this operation."
+        }
+      ],
+      "conditional_output_schema": [
+        {
+          "condition": "{{this['includeAdditional'] === true}}",
+          "output_schema": {
+            "data": {
+              "id": "",
+              "ownerName": "",
+              "dateAdded": "",
+              "webLink": "",
+              "type": "",
+              "lastModified": "",
+              "summary": "",
+              "privateFlag": "",
+              "active": "",
+              "activeLocked": "",
+              "rating": "",
+              "hostName": "",
+              "dnsActive": "",
+              "confidence": "",
+              "whoisActive": "",
+              "tags": {
+                "data": [
+                  {
+                    "id": "",
+                    "name": "",
+                    "lastUsed": ""
+                  }
+                ]
+              },
+              "associatedGroups": {},
+              "threatAssessScore": "",
+              "threatAssessRating": "",
+              "threatAssessConfidence": ""
+            },
+            "status": ""
+          }
+        },
+        {
+          "condition": "{{true}}",
+          "output_schema": {
+            "data": {
+              "id": "",
+              "ownerName": "",
+              "dateAdded": "",
+              "webLink": "",
+              "type": "",
+              "lastModified": "",
+              "summary": "",
+              "privateFlag": "",
+              "active": "",
+              "activeLocked": "",
+              "rating": "",
+              "hostName": "",
+              "dnsActive": "",
+              "confidence": "",
+              "whoisActive": ""
+            },
+            "status": ""
+          }
+        }
+      ]
+    },
+    {
+      "operation": "list_indicator",
+      "title": "List Indicator",
+      "category": "investigation",
+      "annotation": "list_indicator",
+      "description": "Retrieves indicators using the ThreatConnect API based on the input parameters you have specified",
+      "enabled": true,
+      "parameters": [
+        {
+          "title": "Include Additional Params",
+          "required": false,
+          "editable": true,
+          "visible": true,
+          "type": "checkbox",
+          "name": "includeAdditional",
+          "value": true,
+          "tooltip": "Select this option to include the 'tags', 'threatAssess', and 'associatedGroups.attributes' keys in the response of this operation",
+          "description": "(Optional) Select this option to include the 'tags', 'threatAssess', and 'associatedGroups.attributes' keys in the response of this operation."
+        },
+        {
+          "title": "Limit",
+          "name": "resultLimit",
+          "visible": true,
+          "required": false,
+          "editable": true,
+          "type": "integer",
+          "tooltip": "The number of records that should be returned in a single search. By default, it is set as \"100\", and the maximum value that can be specified for 'resultLimit' is 10000",
+          "description": "(Optional) The number of records that should be returned in a single search. By default, it is set as \"100\", and the maximum value that can be specified for 'resultLimit' is 10000."
+        },
+        {
+          "title": "Offset",
+          "name": "resultStart",
+          "visible": true,
+          "required": false,
+          "editable": true,
+          "type": "integer",
+          "tooltip": "Starting from the offset matching result",
+          "description": "(Optional) The offset value retrieves a subset of records that starts from the offset value. The offset works with the 'Limit' parameter to determine how many records to retrieve starting from the offset. By default, it is set as \"0\"."
+        }
+      ],
+      "conditional_output_schema": [
+        {
+          "condition": "{{this['includeAdditional'] === true}}",
+          "output_schema": {
+            "data": [
+              {
+                "id": "",
+                "ownerName": "",
+                "dateAdded": "",
+                "webLink": "",
+                "type": "",
+                "lastModified": "",
+                "summary": "",
+                "privateFlag": "",
+                "active": "",
+                "activeLocked": "",
+                "ip": "",
+                "tags": {
+                  "data": [
+                    {
+                      "id": "",
+                      "name": "",
+                      "lastUsed": ""
+                    }
+                  ]
+                },
+                "rating": "",
+                "confidence": "",
+                "associatedGroups": {},
+                "threatAssessScore": "",
+                "threatAssessRating": "",
+                "threatAssessConfidence": ""
+              }
+            ],
+            "status": ""
+          }
+        },
+        {
+          "condition": "{{true}}",
+          "output_schema": {
+            "data": [
+              {
+                "id": "",
+                "ownerName": "",
+                "dateAdded": "",
+                "webLink": "",
+                "type": "",
+                "lastModified": "",
+                "summary": "",
+                "privateFlag": "",
+                "active": "",
+                "activeLocked": "",
+                "confidence": "",
+                "md5": ""
+              }
+            ],
+            "status": ""
+          }
+        }
+      ]
+    },
+    {
+      "operation": "invoke_api",
+      "title": "Invoke ThreatConnect REST API",
+      "annotation": "api_call",
+      "category": "investigation",
+      "description": "Calls any ThreatConnect REST endpoint on the configured server. The request is signed or token-authenticated for you; a full URL is refused so credentials never leave the server.",
+      "enabled": true,
+      "parameters": [
+        {
+          "title": "Endpoint",
+          "name": "endpoint",
+          "type": "text",
+          "required": true,
+          "editable": true,
+          "visible": true,
+          "description": "Path on the server, for example /api/v3/tags. Query parameters may follow the path.",
+          "tooltip": "Path on the server, for example /api/v3/tags. Query parameters may follow the path.",
+          "placeholder": "e.g. /api/v3/groups"
+        },
+        {
+          "title": "Method",
+          "name": "method",
+          "type": "select",
+          "required": false,
+          "editable": true,
+          "visible": true,
+          "description": "HTTP method. Defaults to GET.",
+          "tooltip": "HTTP method. Defaults to GET.",
+          "options": [
+            "GET",
+            "POST",
+            "PUT",
+            "DELETE"
+          ],
+          "value": "GET"
+        },
+        {
+          "title": "Request Body",
+          "name": "request_body",
+          "type": "json",
+          "required": false,
+          "editable": true,
+          "visible": true,
+          "description": "(Optional) JSON object sent with POST and PUT.",
+          "tooltip": "(Optional) JSON object sent with POST and PUT."
+        }
+      ],
+      "output_schema": {}
+    },
+    {
+      "operation": "fetch_indicators",
+      "title": "Fetch Indicators (Bulk)",
+      "annotation": "fetch_indicators",
+      "category": "investigation",
+      "description": "Bulk-pulls indicators from ThreatConnect with optional type / owner / modified-since filters and full pagination. Used by scheduled data ingestion and available on-demand.",
+      "enabled": true,
+      "parameters": [
+        {
+          "title": "Indicator Type",
+          "name": "indicator_type",
+          "type": "select",
+          "options": [
+            "Any",
+            "Address",
+            "Host",
+            "URL",
+            "EmailAddress",
+            "File"
+          ],
+          "value": "Any",
+          "required": false,
+          "editable": true,
+          "visible": true,
+          "tooltip": "Restrict the pull to a single ThreatConnect indicator type.",
+          "description": "Restrict the pull to a single ThreatConnect indicator type."
+        },
+        {
+          "title": "Owner",
+          "name": "owner",
+          "type": "select",
+          "required": false,
+          "editable": true,
+          "visible": true,
+          "description": "Restrict the pull to indicators owned by this Source/Community/Organization. Defaults to the connector's Default Organization.",
+          "tooltip": "Restrict the pull to indicators owned by this Source/Community/Organization. Defaults to the connector's Default Organization.",
+          "apiOperation": "get_owner_options"
+        },
+        {
+          "title": "Modified Since",
+          "name": "modified_since",
+          "type": "datetime",
+          "required": false,
+          "editable": true,
+          "visible": true,
+          "tooltip": "ISO 8601 datetime; only indicators with lastModified >= this value are returned.",
+          "description": "ISO 8601 datetime; only indicators with lastModified >= this value are returned."
+        },
+        {
+          "title": "Page Size",
+          "name": "page_size",
+          "type": "integer",
+          "required": false,
+          "editable": true,
+          "visible": true,
+          "value": 500,
+          "tooltip": "Indicators fetched per API page. ThreatConnect caps this at 1000.",
+          "description": "Indicators fetched per API page. ThreatConnect caps this at 1000."
+        },
+        {
+          "title": "Limit (Optional)",
+          "name": "limit",
+          "type": "integer",
+          "required": false,
+          "editable": true,
+          "visible": true,
+          "tooltip": "Cap total indicators returned across all pages.",
+          "description": "Cap total indicators returned across all pages."
+        }
+      ],
+      "output_schema": {
+        "indicators": [
+          {
+            "id": "",
+            "type": "",
+            "summary": "",
+            "rating": 0,
+            "confidence": 0,
+            "ownerName": "",
+            "dateAdded": "",
+            "lastModified": ""
+          }
+        ],
+        "count": 0,
+        "truncated": false
+      }
+    },
+    {
+      "operation": "get_indicator",
+      "title": "Get Indicator",
+      "annotation": "get_indicator",
+      "category": "investigation",
+      "description": "Retrieves one indicator by id or summary.",
+      "enabled": true,
+      "visible": true,
+      "parameters": [
+        {
+          "title": "Indicator",
+          "name": "indicator",
+          "type": "text",
+          "required": true,
+          "editable": true,
+          "visible": true,
+          "description": "Indicator id or summary (the value, for example an IP address or a file hash).",
+          "tooltip": "Indicator id or summary (the value, for example an IP address or a file hash)."
+        },
+        {
+          "title": "Owner",
+          "name": "owner",
+          "type": "select",
+          "required": false,
+          "editable": true,
+          "visible": true,
+          "description": "(Optional) Owner (organization, community or source) to act on. Pick from the list or enter a name. Overrides the 'Default Organization' of the configuration.",
+          "tooltip": "(Optional) Owner (organization, community or source) to act on. Pick from the list or enter a name. Overrides the 'Default Organization' of the configuration.",
+          "apiOperation": "get_owner_options"
+        },
+        {
+          "title": "Additional Fields",
+          "name": "fields",
+          "type": "text",
+          "required": false,
+          "editable": true,
+          "visible": true,
+          "description": "(Optional) Comma-separated extra fields to include, for example tags,attributes,associatedGroups.",
+          "tooltip": "(Optional) Comma-separated extra fields to include, for example tags,attributes,associatedGroups."
+        }
+      ],
+      "output_schema": {}
+    },
+    {
+      "operation": "create_indicator",
+      "title": "Create Indicator",
+      "annotation": "create_indicator",
+      "category": "miscellaneous",
+      "description": "Creates an indicator. If it already exists in the owner it is updated instead. A file hash is recognised as MD5, SHA1 or SHA256 by its length.",
+      "enabled": true,
+      "visible": true,
+      "parameters": [
+        {
+          "title": "Indicator Type",
+          "name": "indicator_type",
+          "type": "select",
+          "required": true,
+          "editable": true,
+          "visible": true,
+          "description": "Type of indicator to create. Used by the Indicator Type setting.",
+          "tooltip": "Type of indicator to create.",
+          "options": [
+            "Address",
+            "EmailAddress",
+            "File",
+            "Host",
+            "URL",
+            "ASN",
+            "CIDR",
+            "Email Subject",
+            "Hashtag",
+            "Mutex",
+            "User Agent"
+          ],
+          "value": "Address"
+        },
+        {
+          "title": "Value",
+          "name": "indicator",
+          "type": "text",
+          "required": true,
+          "editable": true,
+          "visible": true,
+          "description": "The indicator value: an IP address, host name, URL, email address, file hash, ASN, CIDR block, mutex name and so on.",
+          "tooltip": "The indicator value: an IP address, host name, URL, email address, file hash, ASN, CIDR block, mutex name and so on."
+        },
+        {
+          "title": "Owner",
+          "name": "owner",
+          "type": "select",
+          "required": false,
+          "editable": true,
+          "visible": true,
+          "description": "(Optional) Owner (organization, community or source) to act on. Pick from the list or enter a name. Overrides the 'Default Organization' of the configuration.",
+          "tooltip": "(Optional) Owner (organization, community or source) to act on. Pick from the list or enter a name. Overrides the 'Default Organization' of the configuration.",
+          "apiOperation": "get_owner_options"
+        },
+        {
+          "title": "Rating",
+          "name": "rating",
+          "type": "text",
+          "required": false,
+          "editable": true,
+          "visible": true,
+          "description": "(Optional) Threat rating from 0 to 5, for example 3.5.",
+          "tooltip": "(Optional) Threat rating from 0 to 5, for example 3.5."
+        },
+        {
+          "title": "Confidence",
+          "name": "confidence",
+          "type": "integer",
+          "required": false,
+          "editable": true,
+          "visible": true,
+          "description": "(Optional) Confidence from 0 to 100.",
+          "tooltip": "(Optional) Confidence from 0 to 100."
+        },
+        {
+          "title": "Tags",
+          "name": "tags",
+          "type": "text",
+          "required": false,
+          "editable": true,
+          "visible": true,
+          "description": "(Optional) Comma-separated tags.",
+          "tooltip": "(Optional) Comma-separated tags."
+        },
+        {
+          "title": "Security Labels",
+          "name": "security_labels",
+          "type": "text",
+          "required": false,
+          "editable": true,
+          "visible": true,
+          "description": "(Optional) Comma-separated security labels, for example TLP:AMBER.",
+          "tooltip": "(Optional) Comma-separated security labels, for example TLP:AMBER."
+        },
+        {
+          "title": "Description",
+          "name": "description",
+          "type": "text",
+          "required": false,
+          "editable": true,
+          "visible": true,
+          "description": "(Optional) Stored as the Description attribute.",
+          "tooltip": "(Optional) Stored as the Description attribute."
+        },
+        {
+          "title": "Other Fields",
+          "name": "other_fields",
+          "type": "json",
+          "required": false,
+          "editable": true,
+          "visible": true,
+          "description": "(Optional) Extra fields merged into the request body, for example {\"dnsActive\": true}.",
+          "tooltip": "(Optional) Extra fields merged into the request body, for example {\"dnsActive\": true}."
+        }
+      ],
+      "output_schema": {}
+    },
+    {
+      "operation": "update_indicator",
+      "title": "Update Indicator",
+      "annotation": "update_indicator",
+      "category": "miscellaneous",
+      "description": "Changes an indicator. Only the fields you set are sent. Tags and security labels are added unless you choose Replace or Remove.",
+      "enabled": true,
+      "visible": true,
+      "parameters": [
+        {
+          "title": "Indicator",
+          "name": "indicator",
+          "type": "text",
+          "required": true,
+          "editable": true,
+          "visible": true,
+          "description": "Indicator id or summary (the value, for example an IP address or a file hash).",
+          "tooltip": "Indicator id or summary (the value, for example an IP address or a file hash)."
+        },
+        {
+          "title": "Owner",
+          "name": "owner",
+          "type": "select",
+          "required": false,
+          "editable": true,
+          "visible": true,
+          "description": "(Optional) Owner (organization, community or source) to act on. Pick from the list or enter a name. Overrides the 'Default Organization' of the configuration.",
+          "tooltip": "(Optional) Owner (organization, community or source) to act on. Pick from the list or enter a name. Overrides the 'Default Organization' of the configuration.",
+          "apiOperation": "get_owner_options"
+        },
+        {
+          "title": "Rating",
+          "name": "rating",
+          "type": "text",
+          "required": false,
+          "editable": true,
+          "visible": true,
+          "description": "(Optional) New threat rating from 0 to 5.",
+          "tooltip": "(Optional) New threat rating from 0 to 5."
+        },
+        {
+          "title": "Confidence",
+          "name": "confidence",
+          "type": "integer",
+          "required": false,
+          "editable": true,
+          "visible": true,
+          "description": "(Optional) New confidence from 0 to 100.",
+          "tooltip": "(Optional) New confidence from 0 to 100."
+        },
+        {
+          "title": "Tags",
+          "name": "tags",
+          "type": "text",
+          "required": false,
+          "editable": true,
+          "visible": true,
+          "description": "(Optional) Comma-separated tags.",
+          "tooltip": "(Optional) Comma-separated tags."
+        },
+        {
+          "title": "Tag Mode",
+          "name": "tag_mode",
+          "type": "select",
+          "required": false,
+          "editable": true,
+          "visible": true,
+          "description": "How the tags are applied.",
+          "tooltip": "How the tags are applied.",
+          "options": [
+            "Add",
+            "Replace",
+            "Remove"
+          ],
+          "value": "Add"
+        },
+        {
+          "title": "Security Labels",
+          "name": "security_labels",
+          "type": "text",
+          "required": false,
+          "editable": true,
+          "visible": true,
+          "description": "(Optional) Comma-separated security labels. Used by the Security Labels setting.",
+          "tooltip": "(Optional) Comma-separated security labels."
+        },
+        {
+          "title": "Security Label Mode",
+          "name": "label_mode",
+          "type": "select",
+          "required": false,
+          "editable": true,
+          "visible": true,
+          "description": "How the security labels are applied.",
+          "tooltip": "How the security labels are applied.",
+          "options": [
+            "Add",
+            "Replace",
+            "Remove"
+          ],
+          "value": "Add"
+        },
+        {
+          "title": "Description",
+          "name": "description",
+          "type": "text",
+          "required": false,
+          "editable": true,
+          "visible": true,
+          "description": "(Optional) Stored as the Description attribute.",
+          "tooltip": "(Optional) Stored as the Description attribute."
+        },
+        {
+          "title": "Other Fields",
+          "name": "other_fields",
+          "type": "json",
+          "required": false,
+          "editable": true,
+          "visible": true,
+          "description": "(Optional) Extra fields merged into the request body.",
+          "tooltip": "(Optional) Extra fields merged into the request body."
+        }
+      ],
+      "output_schema": {}
+    },
+    {
+      "operation": "delete_indicator",
+      "title": "Delete Indicator",
+      "annotation": "delete_indicator",
+      "category": "remediation",
+      "description": "Deletes an indicator from an owner. ThreatConnect keeps it in the deleted list.",
+      "enabled": true,
+      "visible": true,
+      "parameters": [
+        {
+          "title": "Indicator",
+          "name": "indicator",
+          "type": "text",
+          "required": true,
+          "editable": true,
+          "visible": true,
+          "description": "Indicator id or summary (the value, for example an IP address or a file hash).",
+          "tooltip": "Indicator id or summary (the value, for example an IP address or a file hash)."
+        },
+        {
+          "title": "Owner",
+          "name": "owner",
+          "type": "select",
+          "required": false,
+          "editable": true,
+          "visible": true,
+          "description": "(Optional) Owner (organization, community or source) to act on. Pick from the list or enter a name. Overrides the 'Default Organization' of the configuration.",
+          "tooltip": "(Optional) Owner (organization, community or source) to act on. Pick from the list or enter a name. Overrides the 'Default Organization' of the configuration.",
+          "apiOperation": "get_owner_options"
+        }
+      ],
+      "output_schema": {}
+    },
+    {
+      "operation": "mark_false_positive",
+      "title": "Mark False Positive",
+      "annotation": "mark_false_positive",
+      "category": "miscellaneous",
+      "description": "Flags an indicator as a false positive.",
+      "enabled": true,
+      "visible": true,
+      "parameters": [
+        {
+          "title": "Indicator",
+          "name": "indicator",
+          "type": "text",
+          "required": true,
+          "editable": true,
+          "visible": true,
+          "description": "Indicator id or summary (the value, for example an IP address or a file hash).",
+          "tooltip": "Indicator id or summary (the value, for example an IP address or a file hash)."
+        },
+        {
+          "title": "Owner",
+          "name": "owner",
+          "type": "select",
+          "required": false,
+          "editable": true,
+          "visible": true,
+          "description": "(Optional) Owner (organization, community or source) to act on. Pick from the list or enter a name. Overrides the 'Default Organization' of the configuration.",
+          "tooltip": "(Optional) Owner (organization, community or source) to act on. Pick from the list or enter a name. Overrides the 'Default Organization' of the configuration.",
+          "apiOperation": "get_owner_options"
+        }
+      ],
+      "output_schema": {}
+    },
+    {
+      "operation": "add_observation",
+      "title": "Add Observation",
+      "annotation": "add_observation",
+      "category": "miscellaneous",
+      "description": "Records that the indicator was seen in your environment.",
+      "enabled": true,
+      "visible": true,
+      "parameters": [
+        {
+          "title": "Indicator",
+          "name": "indicator",
+          "type": "text",
+          "required": true,
+          "editable": true,
+          "visible": true,
+          "description": "Indicator id or summary (the value, for example an IP address or a file hash).",
+          "tooltip": "Indicator id or summary (the value, for example an IP address or a file hash)."
+        },
+        {
+          "title": "Owner",
+          "name": "owner",
+          "type": "select",
+          "required": false,
+          "editable": true,
+          "visible": true,
+          "description": "(Optional) Owner (organization, community or source) to act on. Pick from the list or enter a name. Overrides the 'Default Organization' of the configuration.",
+          "tooltip": "(Optional) Owner (organization, community or source) to act on. Pick from the list or enter a name. Overrides the 'Default Organization' of the configuration.",
+          "apiOperation": "get_owner_options"
+        },
+        {
+          "title": "Observations",
+          "name": "observations",
+          "type": "integer",
+          "required": false,
+          "editable": true,
+          "visible": true,
+          "description": "Number of sightings to add. Defaults to 1.",
+          "tooltip": "Number of sightings to add. Defaults to 1.",
+          "value": 1
+        }
+      ],
+      "output_schema": {}
+    },
+    {
+      "operation": "list_deleted_indicators",
+      "title": "List Deleted Indicators",
+      "annotation": "list_deleted_indicators",
+      "category": "investigation",
+      "description": "Lists indicators deleted since a time, to keep a mirror in step.",
+      "enabled": true,
+      "visible": true,
+      "parameters": [
+        {
+          "title": "Owner",
+          "name": "owner",
+          "type": "select",
+          "required": false,
+          "editable": true,
+          "visible": true,
+          "description": "(Optional) Owner (organization, community or source) to act on. Pick from the list or enter a name. Overrides the 'Default Organization' of the configuration.",
+          "tooltip": "(Optional) Owner (organization, community or source) to act on. Pick from the list or enter a name. Overrides the 'Default Organization' of the configuration.",
+          "apiOperation": "get_owner_options"
+        },
+        {
+          "title": "Indicator Type",
+          "name": "indicator_type",
+          "type": "select",
+          "required": false,
+          "editable": true,
+          "visible": true,
+          "description": "(Optional) Only this type. Used by the Indicator Type setting.",
+          "tooltip": "(Optional) Only this type.",
+          "options": [
+            "Any",
+            "Address",
+            "EmailAddress",
+            "File",
+            "Host",
+            "URL",
+            "ASN",
+            "CIDR",
+            "Email Subject",
+            "Hashtag",
+            "Mutex",
+            "User Agent"
+          ],
+          "value": "Any"
+        },
+        {
+          "title": "Deleted Since",
+          "name": "deleted_since",
+          "type": "datetime",
+          "required": false,
+          "editable": true,
+          "visible": true,
+          "description": "(Optional) Only indicators deleted at or after this time.",
+          "tooltip": "(Optional) Only indicators deleted at or after this time."
+        }
+      ],
+      "output_schema": {}
+    },
+    {
+      "operation": "list_owners",
+      "title": "List Owners",
+      "annotation": "list_owners",
+      "category": "investigation",
+      "description": "Lists the organizations, communities and sources your credentials can see.",
+      "enabled": true,
+      "visible": true,
+      "parameters": [],
+      "output_schema": {}
+    },
+    {
+      "operation": "list_groups",
+      "title": "List Groups",
+      "annotation": "list_groups",
+      "category": "investigation",
+      "description": "Lists groups such as adversaries, incidents and reports, optionally by type, name or a TQL filter.",
+      "enabled": true,
+      "visible": true,
+      "parameters": [
+        {
+          "title": "Owner",
+          "name": "owner",
+          "type": "select",
+          "required": false,
+          "editable": true,
+          "visible": true,
+          "description": "(Optional) Owner (organization, community or source) to act on. Pick from the list or enter a name. Overrides the 'Default Organization' of the configuration.",
+          "tooltip": "(Optional) Owner (organization, community or source) to act on. Pick from the list or enter a name. Overrides the 'Default Organization' of the configuration.",
+          "apiOperation": "get_owner_options"
+        },
+        {
+          "title": "Group Type",
+          "name": "group_type",
+          "type": "select",
+          "required": false,
+          "editable": true,
+          "visible": true,
+          "description": "(Optional) Only this type. Used by the Group Type setting.",
+          "tooltip": "(Optional) Only this type.",
+          "options": [
+            "Any",
+            "Adversary",
+            "Campaign",
+            "Document",
+            "Email",
+            "Event",
+            "Incident",
+            "Intrusion Set",
+            "Report",
+            "Signature",
+            "Threat",
+            "Tactic",
+            "Task"
+          ],
+          "value": "Any"
+        },
+        {
+          "title": "Name",
+          "name": "name",
+          "type": "text",
+          "required": false,
+          "editable": true,
+          "visible": true,
+          "description": "(Optional) Exact group name.",
+          "tooltip": "(Optional) Exact group name."
+        },
+        {
+          "title": "TQL",
+          "name": "tql",
+          "type": "text",
+          "required": false,
+          "editable": true,
+          "visible": true,
+          "description": "(Optional) Extra TQL filter, ANDed with the other filters.",
+          "tooltip": "(Optional) Extra TQL filter, ANDed with the other filters."
+        },
+        {
+          "title": "Start",
+          "name": "resultStart",
+          "type": "integer",
+          "required": false,
+          "editable": true,
+          "visible": true,
+          "description": "(Optional) Offset of the first result.",
+          "tooltip": "(Optional) Offset of the first result."
+        },
+        {
+          "title": "Limit",
+          "name": "resultLimit",
+          "type": "integer",
+          "required": false,
+          "editable": true,
+          "visible": true,
+          "description": "(Optional) Number of results. Used by the Limit setting.",
+          "tooltip": "(Optional) Number of results."
+        }
+      ],
+      "output_schema": {}
+    },
+    {
+      "operation": "get_group",
+      "title": "Get Group",
+      "annotation": "get_group",
+      "category": "investigation",
+      "description": "Retrieves one group by id.",
+      "enabled": true,
+      "visible": true,
+      "parameters": [
+        {
+          "title": "Group ID",
+          "name": "group_id",
+          "type": "text",
+          "required": true,
+          "editable": true,
+          "visible": true,
+          "description": "Numeric id of the group.",
+          "tooltip": "Numeric id of the group."
+        },
+        {
+          "title": "Owner",
+          "name": "owner",
+          "type": "select",
+          "required": false,
+          "editable": true,
+          "visible": true,
+          "description": "(Optional) Owner (organization, community or source) to act on. Pick from the list or enter a name. Overrides the 'Default Organization' of the configuration.",
+          "tooltip": "(Optional) Owner (organization, community or source) to act on. Pick from the list or enter a name. Overrides the 'Default Organization' of the configuration.",
+          "apiOperation": "get_owner_options"
+        }
+      ],
+      "output_schema": {}
+    },
+    {
+      "operation": "list_tags",
+      "title": "List Tags",
+      "annotation": "list_tags",
+      "category": "investigation",
+      "description": "Lists tags.",
+      "enabled": true,
+      "visible": true,
+      "parameters": [
+        {
+          "title": "Owner",
+          "name": "owner",
+          "type": "select",
+          "required": false,
+          "editable": true,
+          "visible": true,
+          "description": "(Optional) Owner (organization, community or source) to act on. Pick from the list or enter a name. Overrides the 'Default Organization' of the configuration.",
+          "tooltip": "(Optional) Owner (organization, community or source) to act on. Pick from the list or enter a name. Overrides the 'Default Organization' of the configuration.",
+          "apiOperation": "get_owner_options"
+        },
+        {
+          "title": "Start",
+          "name": "resultStart",
+          "type": "integer",
+          "required": false,
+          "editable": true,
+          "visible": true,
+          "description": "(Optional) Offset of the first result.",
+          "tooltip": "(Optional) Offset of the first result."
+        },
+        {
+          "title": "Limit",
+          "name": "resultLimit",
+          "type": "integer",
+          "required": false,
+          "editable": true,
+          "visible": true,
+          "description": "(Optional) Number of results. Used by the Limit setting.",
+          "tooltip": "(Optional) Number of results."
+        }
+      ],
+      "output_schema": {}
+    },
+    {
+      "operation": "get_owner_options",
+      "title": "Get Owner Options",
+      "annotation": "get_owner_options",
+      "category": "investigation",
+      "description": "Populates owner dropdowns: every owner the credentials can see, as Name (Type) / name pairs.",
+      "enabled": true,
+      "visible": false,
+      "parameters": [],
+      "output_schema": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {}
+        }
+      }
+    }
+  ]
+}
