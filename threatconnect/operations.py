@@ -511,10 +511,14 @@ def list_owners(config, params):
 
 
 def get_owner_options(config, params):
-    """Owner dropdown: every owner the credentials can see, as Name (Type) / name pairs."""
+    """Owner dropdown: the name of every owner the credentials can see.
+
+    The step editor draws a dropdown from a plain list of strings (a {title, value}
+    object shows as "[object Object]"), and an owner is addressed by its name, which
+    ThreatConnect keeps unique, so the names are the options and need no resolving."""
     owners = (_call(config, '/api/v3/security/owners') or {}).get('data') or []
-    options = [{'title': '{0} ({1})'.format(o.get('name'), o.get('type')), 'value': o.get('name')} for o in owners]
-    return sorted(options, key=lambda o: o['title'].lower())
+    names = {o.get('name') for o in owners if o.get('name')}
+    return sorted(names, key=str.lower)
 
 
 def list_groups(config, params):

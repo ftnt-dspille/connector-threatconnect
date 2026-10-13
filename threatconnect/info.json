@@ -1,7 +1,7 @@
 {
   "name": "threatconnect",
   "label": "ThreatConnect",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "description": "ThreatConnect connector for the v3 REST API. Look up indicator reputation, list, create, update and delete indicators, flag false positives and record observations, browse owners, groups and tags, pull indicators in bulk, and run scheduled threat-intel ingestion. Any other endpoint can be called with Invoke ThreatConnect REST API, which signs the request for you. Authenticate using HMAC (Access ID + Secret Key) or an API token (PAT). <br/><br/>Ingestion has a dependency on the <a href=\"/content-hub/all-content/?contentType=solutionpack&amp;tag=ThreatIntelManagement\" target=\"_blank\" rel=\"noopener\">Threat Intel Management Solution Pack</a>.",
   "publisher": "Fortinet",
   "cs_approved": true,

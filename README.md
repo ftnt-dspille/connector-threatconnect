@@ -50,7 +50,7 @@ scheme is `TC-Token`; `Bearer` is not a ThreatConnect scheme. Both are checked b
 
 ## Sample playbooks
 
-`Sample - ThreatConnect - 2.2.0` holds inactive lookup and change samples, and the active ingestion
+`Sample - ThreatConnect - 2.2.1` holds inactive lookup and change samples, and the active ingestion
 playbooks (`Get Indicators`, `ThreatConnect > Fetch and Create`, `ThreatConnect > Ingest`). Ingest keeps
 a last-pull-time macro, calls Fetch and Create, and moves the macro forward. The source is
 `playbooks/threatconnect.yaml`; `scripts/build_playbooks.sh` compiles it (needs the fsrpb compiler).

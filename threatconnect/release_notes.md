@@ -1,3 +1,6 @@
+#### The following enhancements have been made to the ThreatConnect connector in version 2.2.1:
+- Fixed: the Owner dropdown showed "[object Object]" for every entry in the step editor. It now lists the owner names.
+
 #### The following enhancements have been made to the ThreatConnect connector in version 2.2.0:
 
 ##### What's Added

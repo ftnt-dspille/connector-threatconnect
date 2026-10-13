@@ -12,7 +12,7 @@
   "data": [
     {
       "@type": "WorkflowCollection",
-      "name": "Sample - ThreatConnect - 2.2.0",
+      "name": "Sample - ThreatConnect - 2.2.1",
       "description": "Sample playbooks for ThreatConnect: indicator lookups and changes, and scheduled ingestion. Clone these into a separate collection before customizing - the sample collection is replaced on connector upgrade.",
       "visible": true,
       "image": null,
@@ -38,7 +38,7 @@
           "remoteExecutableFlag": 0,
           "parameters": [],
           "synchronous": false,
-          "lastModifyDate": 1791900344,
+          "lastModifyDate": 1791926403,
           "collection": "/api/3/workflow_collections/9faafbb0-2fee-5100-ac77-3b72ca28a108",
           "versions": [],
           "triggerStep": "/api/3/workflow_steps/fda6cb2d-870d-510f-b37c-0eff28b7b961",
@@ -101,7 +101,7 @@
                 },
                 "connector": "threatconnect",
                 "operation": "hunt_ip",
-                "version": "2.2.0",
+                "version": "2.2.1",
                 "name": "ThreatConnect",
                 "operationTitle": "Get IP Reputation",
                 "pickFromTenant": false,
@@ -151,7 +151,7 @@
           "remoteExecutableFlag": 0,
           "parameters": [],
           "synchronous": false,
-          "lastModifyDate": 1791900344,
+          "lastModifyDate": 1791926403,
           "collection": "/api/3/workflow_collections/9faafbb0-2fee-5100-ac77-3b72ca28a108",
           "versions": [],
           "triggerStep": "/api/3/workflow_steps/cab60474-e477-540d-bf0a-0e2eff19231e",
@@ -214,7 +214,7 @@
                 },
                 "connector": "threatconnect",
                 "operation": "hunt_file",
-                "version": "2.2.0",
+                "version": "2.2.1",
                 "name": "ThreatConnect",
                 "operationTitle": "Get File Reputation",
                 "pickFromTenant": false,
@@ -264,7 +264,7 @@
           "remoteExecutableFlag": 0,
           "parameters": [],
           "synchronous": false,
-          "lastModifyDate": 1791900344,
+          "lastModifyDate": 1791926403,
           "collection": "/api/3/workflow_collections/9faafbb0-2fee-5100-ac77-3b72ca28a108",
           "versions": [],
           "triggerStep": "/api/3/workflow_steps/33f17583-a586-5ec1-842a-b428c3d0d82e",
@@ -327,7 +327,7 @@
                 },
                 "connector": "threatconnect",
                 "operation": "hunt_email",
-                "version": "2.2.0",
+                "version": "2.2.1",
                 "name": "ThreatConnect",
                 "operationTitle": "Get Email Reputation",
                 "pickFromTenant": false,
@@ -377,7 +377,7 @@
           "remoteExecutableFlag": 0,
           "parameters": [],
           "synchronous": false,
-          "lastModifyDate": 1791900344,
+          "lastModifyDate": 1791926403,
           "collection": "/api/3/workflow_collections/9faafbb0-2fee-5100-ac77-3b72ca28a108",
           "versions": [],
           "triggerStep": "/api/3/workflow_steps/6fb4095e-9cb8-5d2f-936a-465664679452",
@@ -440,7 +440,7 @@
                 },
                 "connector": "threatconnect",
                 "operation": "hunt_url",
-                "version": "2.2.0",
+                "version": "2.2.1",
                 "name": "ThreatConnect",
                 "operationTitle": "Get URL Reputation",
                 "pickFromTenant": false,
@@ -490,7 +490,7 @@
           "remoteExecutableFlag": 0,
           "parameters": [],
           "synchronous": false,
-          "lastModifyDate": 1791900344,
+          "lastModifyDate": 1791926403,
           "collection": "/api/3/workflow_collections/9faafbb0-2fee-5100-ac77-3b72ca28a108",
           "versions": [],
           "triggerStep": "/api/3/workflow_steps/7eaa9141-ce78-580c-a719-4ac8384d953c",
@@ -553,7 +553,7 @@
                 },
                 "connector": "threatconnect",
                 "operation": "hunt_host",
-                "version": "2.2.0",
+                "version": "2.2.1",
                 "name": "ThreatConnect",
                 "operationTitle": "Get Host Reputation",
                 "pickFromTenant": false,
@@ -603,7 +603,7 @@
           "remoteExecutableFlag": 0,
           "parameters": [],
           "synchronous": false,
-          "lastModifyDate": 1791900344,
+          "lastModifyDate": 1791926403,
           "collection": "/api/3/workflow_collections/9faafbb0-2fee-5100-ac77-3b72ca28a108",
           "versions": [],
           "triggerStep": "/api/3/workflow_steps/152c227c-77b5-5ed9-b1d3-e5bb65714ad6",
@@ -666,7 +666,7 @@
                 },
                 "connector": "threatconnect",
                 "operation": "list_indicator",
-                "version": "2.2.0",
+                "version": "2.2.1",
                 "name": "ThreatConnect",
                 "operationTitle": "List Indicator",
                 "pickFromTenant": false,
@@ -716,7 +716,7 @@
           "remoteExecutableFlag": 0,
           "parameters": [],
           "synchronous": false,
-          "lastModifyDate": 1791900344,
+          "lastModifyDate": 1791926403,
           "collection": "/api/3/workflow_collections/9faafbb0-2fee-5100-ac77-3b72ca28a108",
           "versions": [],
           "triggerStep": "/api/3/workflow_steps/72ef54a8-186a-5444-8838-40941ee1f401",
@@ -777,7 +777,7 @@
                 },
                 "connector": "threatconnect",
                 "operation": "invoke_api",
-                "version": "2.2.0",
+                "version": "2.2.1",
                 "name": "ThreatConnect",
                 "operationTitle": "Invoke ThreatConnect REST API",
                 "pickFromTenant": false,
@@ -827,10 +827,10 @@
           "remoteExecutableFlag": 0,
           "parameters": [],
           "synchronous": false,
-          "lastModifyDate": 1791900344,
+          "lastModifyDate": 1791926403,
           "collection": "/api/3/workflow_collections/9faafbb0-2fee-5100-ac77-3b72ca28a108",
           "versions": [],
-          "triggerStep": "/api/3/workflow_steps/ddd66afa-9085-5dcf-8f85-eddb6dccfca9",
+          "triggerStep": "/api/3/workflow_steps/cad4e021-a1ce-5a90-b61a-e41b493a14d5",
           "steps": [
             {
               "@type": "WorkflowStep",
@@ -873,7 +873,7 @@
               "left": "200",
               "stepType": "/api/3/workflow_step_types/f414d039-bb0d-4e59-9c39-a8f1e880b18a",
               "group": null,
-              "uuid": "ddd66afa-9085-5dcf-8f85-eddb6dccfca9"
+              "uuid": "cad4e021-a1ce-5a90-b61a-e41b493a14d5"
             },
             {
               "@type": "WorkflowStep",
@@ -895,7 +895,7 @@
                 },
                 "connector": "threatconnect",
                 "operation": "create_indicator",
-                "version": "2.2.0",
+                "version": "2.2.1",
                 "name": "ThreatConnect",
                 "operationTitle": "Create Indicator",
                 "pickFromTenant": false,
@@ -906,26 +906,26 @@
               "left": "200",
               "stepType": "/api/3/workflow_step_types/0bfed618-0316-11e7-93ae-92361f002671",
               "group": null,
-              "uuid": "8ac579fd-8b2d-5c84-8841-cfc74fd51cd5"
+              "uuid": "e7c0a8af-8ca9-513f-8bbf-56edd6db552d"
             }
           ],
           "routes": [
             {
               "@type": "WorkflowRoute",
               "name": "Start -> Create Indicator",
-              "targetStep": "/api/3/workflow_steps/8ac579fd-8b2d-5c84-8841-cfc74fd51cd5",
-              "sourceStep": "/api/3/workflow_steps/ddd66afa-9085-5dcf-8f85-eddb6dccfca9",
+              "targetStep": "/api/3/workflow_steps/e7c0a8af-8ca9-513f-8bbf-56edd6db552d",
+              "sourceStep": "/api/3/workflow_steps/cad4e021-a1ce-5a90-b61a-e41b493a14d5",
               "label": null,
               "isExecuted": false,
               "group": null,
-              "uuid": "c6d9b8b4-f0a6-5ed7-90a8-a9d909eb5bc8"
+              "uuid": "1edf862e-14b8-5476-85d6-607c578b9fe1"
             }
           ],
           "groups": [],
           "priority": "/api/3/picklists/9e8d41e4-8ada-4a2c-bd02-07f62c6d0a00",
           "playbookOrigin": null,
           "isEditable": true,
-          "uuid": "18ba6689-960a-5763-b2f5-81d23f7ce0aa",
+          "uuid": "0117206b-eb8c-5f38-8185-c12075349fcb",
           "owners": [],
           "isPrivate": false
         },
@@ -945,10 +945,10 @@
           "remoteExecutableFlag": 0,
           "parameters": [],
           "synchronous": false,
-          "lastModifyDate": 1791900344,
+          "lastModifyDate": 1791926403,
           "collection": "/api/3/workflow_collections/9faafbb0-2fee-5100-ac77-3b72ca28a108",
           "versions": [],
-          "triggerStep": "/api/3/workflow_steps/f640c9c5-1006-548a-a8a1-95cc74b51748",
+          "triggerStep": "/api/3/workflow_steps/e2c2ff02-b4f3-53ae-852e-34baa830e4e4",
           "steps": [
             {
               "@type": "WorkflowStep",
@@ -991,7 +991,7 @@
               "left": "200",
               "stepType": "/api/3/workflow_step_types/f414d039-bb0d-4e59-9c39-a8f1e880b18a",
               "group": null,
-              "uuid": "f640c9c5-1006-548a-a8a1-95cc74b51748"
+              "uuid": "e2c2ff02-b4f3-53ae-852e-34baa830e4e4"
             },
             {
               "@type": "WorkflowStep",
@@ -1010,7 +1010,7 @@
                 },
                 "connector": "threatconnect",
                 "operation": "update_indicator",
-                "version": "2.2.0",
+                "version": "2.2.1",
                 "name": "ThreatConnect",
                 "operationTitle": "Update Indicator",
                 "pickFromTenant": false,
@@ -1021,26 +1021,26 @@
               "left": "200",
               "stepType": "/api/3/workflow_step_types/0bfed618-0316-11e7-93ae-92361f002671",
               "group": null,
-              "uuid": "b15eab5c-3025-5da4-b8e4-822004307632"
+              "uuid": "08586e68-dcc9-5f4c-af72-cd1c9665d595"
             }
           ],
           "routes": [
             {
               "@type": "WorkflowRoute",
               "name": "Start -> Update Indicator",
-              "targetStep": "/api/3/workflow_steps/b15eab5c-3025-5da4-b8e4-822004307632",
-              "sourceStep": "/api/3/workflow_steps/f640c9c5-1006-548a-a8a1-95cc74b51748",
+              "targetStep": "/api/3/workflow_steps/08586e68-dcc9-5f4c-af72-cd1c9665d595",
+              "sourceStep": "/api/3/workflow_steps/e2c2ff02-b4f3-53ae-852e-34baa830e4e4",
               "label": null,
               "isExecuted": false,
               "group": null,
-              "uuid": "7e2aa2b9-dcd4-506c-9e29-abe0cad52b6f"
+              "uuid": "e9552c03-3f35-5d1e-a287-37a6dcc08035"
             }
           ],
           "groups": [],
           "priority": "/api/3/picklists/9e8d41e4-8ada-4a2c-bd02-07f62c6d0a00",
           "playbookOrigin": null,
           "isEditable": true,
-          "uuid": "4baa8c71-01f0-5164-8052-ded16a22f22f",
+          "uuid": "ea03c507-c27e-5a23-8fb7-886d5913b94d",
           "owners": [],
           "isPrivate": false
         },
@@ -1060,10 +1060,10 @@
           "remoteExecutableFlag": 0,
           "parameters": [],
           "synchronous": false,
-          "lastModifyDate": 1791900344,
+          "lastModifyDate": 1791926403,
           "collection": "/api/3/workflow_collections/9faafbb0-2fee-5100-ac77-3b72ca28a108",
           "versions": [],
-          "triggerStep": "/api/3/workflow_steps/4a8c7867-b166-5f84-bd67-5c9a4ec7440d",
+          "triggerStep": "/api/3/workflow_steps/751c4311-8b23-5f79-9cdd-7dfabec0a4ee",
           "steps": [
             {
               "@type": "WorkflowStep",
@@ -1106,7 +1106,7 @@
               "left": "200",
               "stepType": "/api/3/workflow_step_types/f414d039-bb0d-4e59-9c39-a8f1e880b18a",
               "group": null,
-              "uuid": "4a8c7867-b166-5f84-bd67-5c9a4ec7440d"
+              "uuid": "751c4311-8b23-5f79-9cdd-7dfabec0a4ee"
             },
             {
               "@type": "WorkflowStep",
@@ -1122,7 +1122,7 @@
                 },
                 "connector": "threatconnect",
                 "operation": "mark_false_positive",
-                "version": "2.2.0",
+                "version": "2.2.1",
                 "name": "ThreatConnect",
                 "operationTitle": "Mark False Positive",
                 "pickFromTenant": false,
@@ -1133,26 +1133,26 @@
               "left": "200",
               "stepType": "/api/3/workflow_step_types/0bfed618-0316-11e7-93ae-92361f002671",
               "group": null,
-              "uuid": "75d2c886-c24b-5cdc-84b8-1ef99f113d32"
+              "uuid": "10c93fef-2da5-531a-80b4-bdb39fddd609"
             }
           ],
           "routes": [
             {
               "@type": "WorkflowRoute",
               "name": "Start -> Mark False Positive",
-              "targetStep": "/api/3/workflow_steps/75d2c886-c24b-5cdc-84b8-1ef99f113d32",
-              "sourceStep": "/api/3/workflow_steps/4a8c7867-b166-5f84-bd67-5c9a4ec7440d",
+              "targetStep": "/api/3/workflow_steps/10c93fef-2da5-531a-80b4-bdb39fddd609",
+              "sourceStep": "/api/3/workflow_steps/751c4311-8b23-5f79-9cdd-7dfabec0a4ee",
               "label": null,
               "isExecuted": false,
               "group": null,
-              "uuid": "7d53aafc-72b3-5315-b624-7bd88428a8c4"
+              "uuid": "92489d14-b215-5a74-84f7-73a4419d4246"
             }
           ],
           "groups": [],
           "priority": "/api/3/picklists/9e8d41e4-8ada-4a2c-bd02-07f62c6d0a00",
           "playbookOrigin": null,
           "isEditable": true,
-          "uuid": "fb358c78-d7b8-5f98-a428-d83acd462460",
+          "uuid": "1fc305d3-ad0d-553d-b09a-3abe1ccc22ad",
           "owners": [],
           "isPrivate": false
         },
@@ -1172,10 +1172,10 @@
           "remoteExecutableFlag": 0,
           "parameters": [],
           "synchronous": false,
-          "lastModifyDate": 1791900344,
+          "lastModifyDate": 1791926403,
           "collection": "/api/3/workflow_collections/9faafbb0-2fee-5100-ac77-3b72ca28a108",
           "versions": [],
-          "triggerStep": "/api/3/workflow_steps/2ab74ea9-05d7-58b8-8372-e7b94ff30992",
+          "triggerStep": "/api/3/workflow_steps/e3343141-e153-5368-b886-b740afc6ee3d",
           "steps": [
             {
               "@type": "WorkflowStep",
@@ -1218,7 +1218,7 @@
               "left": "200",
               "stepType": "/api/3/workflow_step_types/f414d039-bb0d-4e59-9c39-a8f1e880b18a",
               "group": null,
-              "uuid": "2ab74ea9-05d7-58b8-8372-e7b94ff30992"
+              "uuid": "e3343141-e153-5368-b886-b740afc6ee3d"
             },
             {
               "@type": "WorkflowStep",
@@ -1231,7 +1231,7 @@
                 "params": {},
                 "connector": "threatconnect",
                 "operation": "list_owners",
-                "version": "2.2.0",
+                "version": "2.2.1",
                 "name": "ThreatConnect",
                 "operationTitle": "List Owners",
                 "pickFromTenant": false,
@@ -1242,26 +1242,26 @@
               "left": "200",
               "stepType": "/api/3/workflow_step_types/0bfed618-0316-11e7-93ae-92361f002671",
               "group": null,
-              "uuid": "567cbb7f-25c2-5c70-8c2a-a75af17f519d"
+              "uuid": "e31f5bc8-d0c3-552b-a1d3-74e4e0983a8f"
             }
           ],
           "routes": [
             {
               "@type": "WorkflowRoute",
               "name": "Start -> List Owners",
-              "targetStep": "/api/3/workflow_steps/567cbb7f-25c2-5c70-8c2a-a75af17f519d",
-              "sourceStep": "/api/3/workflow_steps/2ab74ea9-05d7-58b8-8372-e7b94ff30992",
+              "targetStep": "/api/3/workflow_steps/e31f5bc8-d0c3-552b-a1d3-74e4e0983a8f",
+              "sourceStep": "/api/3/workflow_steps/e3343141-e153-5368-b886-b740afc6ee3d",
               "label": null,
               "isExecuted": false,
               "group": null,
-              "uuid": "5423d616-77c4-5209-97bc-924bb1e7bd4d"
+              "uuid": "90ec5a03-6e7b-5d68-856d-c6875767c587"
             }
           ],
           "groups": [],
           "priority": "/api/3/picklists/9e8d41e4-8ada-4a2c-bd02-07f62c6d0a00",
           "playbookOrigin": null,
           "isEditable": true,
-          "uuid": "18a3b5d4-7137-578e-94c9-10e74e1c4b92",
+          "uuid": "160005ec-a6b8-5d12-b8cc-958ca3be632b",
           "owners": [],
           "isPrivate": false
         },
@@ -1280,7 +1280,7 @@
           "remoteExecutableFlag": 0,
           "parameters": [],
           "synchronous": false,
-          "lastModifyDate": 1791900344,
+          "lastModifyDate": 1791926403,
           "collection": "/api/3/workflow_collections/9faafbb0-2fee-5100-ac77-3b72ca28a108",
           "versions": [],
           "triggerStep": "/api/3/workflow_steps/c0b3e82a-02e9-5dd2-88b0-cd431610bce0",
@@ -1338,7 +1338,7 @@
                 "params": {},
                 "connector": "threatconnect",
                 "operation": "fetch_indicators",
-                "version": "2.2.0",
+                "version": "2.2.1",
                 "name": "ThreatConnect",
                 "operationTitle": "Fetch Indicators (Bulk)",
                 "step_variables": []
@@ -1391,7 +1391,7 @@
             "lastPullTime"
           ],
           "synchronous": false,
-          "lastModifyDate": 1791900344,
+          "lastModifyDate": 1791926403,
           "collection": "/api/3/workflow_collections/9faafbb0-2fee-5100-ac77-3b72ca28a108",
           "versions": [],
           "triggerStep": "/api/3/workflow_steps/d9c2c5f2-964d-5c9a-9b60-0729120577b0",
@@ -1496,7 +1496,7 @@
                 },
                 "connector": "threatconnect",
                 "operation": "fetch_indicators",
-                "version": "2.2.0",
+                "version": "2.2.1",
                 "name": "ThreatConnect",
                 "operationTitle": "Fetch Indicators (Bulk)",
                 "step_variables": []
@@ -1669,7 +1669,7 @@
           "remoteExecutableFlag": 0,
           "parameters": [],
           "synchronous": false,
-          "lastModifyDate": 1791900344,
+          "lastModifyDate": 1791926403,
           "collection": "/api/3/workflow_collections/9faafbb0-2fee-5100-ac77-3b72ca28a108",
           "versions": [],
           "triggerStep": "/api/3/workflow_steps/3aa68f0d-02e5-58ec-ad72-96c7fc22e587",

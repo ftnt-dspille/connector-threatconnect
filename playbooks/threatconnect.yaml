@@ -9,7 +9,7 @@
 #     Create, and moves the macro forward. File indicators land as MD5, SHA1 or SHA256
 #     by hash length.
 
-collection: Sample - ThreatConnect - 2.2.0
+collection: Sample - ThreatConnect - 2.2.1
 uuid: 9faafbb0-2fee-5100-ac77-3b72ca28a108
 description: 'Sample playbooks for ThreatConnect: indicator lookups and changes, and scheduled ingestion.
   Clone these into a separate collection before customizing - the sample collection is replaced on connector

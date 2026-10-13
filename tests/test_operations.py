@@ -149,7 +149,8 @@ def test_delete_indicator_and_list_deleted(run, server):
 def test_list_owners_and_the_dropdown(run):
     assert {o['name'] for o in run('list_owners')['data']} == {'FortiLab Org', 'Common Community', 'Lab Source'}
     options = run('get_owner_options')
-    assert {'title': 'FortiLab Org (Organization)', 'value': 'FortiLab Org'} in options
+    assert options == ['Common Community', 'FortiLab Org', 'Lab Source']   # plain names, not {title, value}
+    assert all(isinstance(o, str) for o in options)
 
 
 def test_list_groups_filters(run):
