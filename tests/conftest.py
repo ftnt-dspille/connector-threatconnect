@@ -51,6 +51,8 @@ ConnectorError = sys.modules['connectors.core.connector'].ConnectorError
 ACCESS_ID = 'test-access-id'
 SECRET_KEY = 'test-secret-key'  # pragma: allowlist secret
 PAT = 'test-pat'
+TAXII_USER = 'test-taxii'
+TAXII_PASS = 'test-taxii-pass'  # pragma: allowlist secret
 
 
 def make_rows(count=60):
@@ -78,6 +80,9 @@ def server():
     mock.Handler.access_id = ACCESS_ID
     mock.Handler.secret_key = SECRET_KEY
     mock.Handler.pat = PAT
+    mock.Handler.taxii_user = TAXII_USER
+    mock.Handler.taxii_pass = TAXII_PASS
+    mock.Handler.taxii_added_after = True
     mock.Handler.no_auth = False
     httpd = ThreadingHTTPServer(('127.0.0.1', 0), mock.Handler)
     threading.Thread(target=httpd.serve_forever, daemon=True).start()
@@ -89,7 +94,8 @@ def server():
 @pytest.fixture
 def config(server):
     return {'api_base_url': server.url, 'auth_type': operations.HMAC_AUTH, 'api_access_id': ACCESS_ID,
-            'api_secret_key': SECRET_KEY, 'api_default_org': 'FortiLab Org', 'verify': False}
+            'api_secret_key': SECRET_KEY, 'api_default_org': 'FortiLab Org', 'verify': False,
+            'taxii_username': TAXII_USER, 'taxii_password': TAXII_PASS}
 
 
 @pytest.fixture

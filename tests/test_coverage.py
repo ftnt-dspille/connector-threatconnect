@@ -14,7 +14,7 @@ def test_every_info_operation_is_implemented_and_every_implementation_is_declare
 
 
 def test_every_operation_has_a_test():
-    text = (TESTS / 'test_operations.py').read_text()
+    text = ''.join(p.read_text() for p in TESTS.glob('test_*.py'))
     missing = [o['operation'] for o in INFO['operations']
                if not re.search(r"""['"]%s['"]""" % o['operation'], text)]
     assert not missing, 'operations with no test: %s' % missing
@@ -22,7 +22,7 @@ def test_every_operation_has_a_test():
 
 def test_dropdown_populators_exist_and_are_hidden():
     populators = {p['apiOperation'] for o in INFO['operations'] for p in o['parameters'] if p.get('apiOperation')}
-    assert populators == {'get_owner_options'}
+    assert populators == {'get_owner_options', 'get_collection_options'}
     hidden = {o['operation'] for o in INFO['operations'] if not o.get('visible', True)}
     assert populators <= hidden
 

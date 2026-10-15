@@ -4,14 +4,15 @@
 # (the fsrpb compiler, set FSRPB_HOME). Author here, never in the JSON.
 #
 #   * Lookups and changes (inactive samples): clone one, fill in the example values.
-#   * Get Indicators, ThreatConnect > Fetch and Create, ThreatConnect > Ingest (active):
-#     the data ingestion contract. Ingest reads a last-pull-time macro, calls Fetch and
-#     Create, and moves the macro forward. File indicators land as MD5, SHA1 or SHA256
-#     by hash length.
+#   * Get STIX Indicators, ThreatConnect > STIX Fetch and Create, ThreatConnect > STIX Ingest
+#     (active): the data ingestion contract, over ThreatConnect's TAXII 2.1 (STIX) server.
+#     STIX Ingest reads a last-pull-time macro, calls STIX Fetch and Create, and moves the
+#     macro forward. File indicators land as MD5, SHA1 or SHA256 by hash length. They need
+#     the TAXII user in the connector configuration.
 
-collection: Sample - ThreatConnect - 2.2.1
+collection: Sample - ThreatConnect - 2.3.0
 uuid: 9faafbb0-2fee-5100-ac77-3b72ca28a108
-description: 'Sample playbooks for ThreatConnect: indicator lookups and changes, and scheduled ingestion.
+description: 'Sample playbooks for ThreatConnect: indicator lookups and changes, and scheduled STIX ingestion.
   Clone these into a separate collection before customizing - the sample collection is replaced on connector
   upgrade.'
 visible: true
@@ -324,36 +325,39 @@ playbooks:
     params: {}
     connector: threatconnect
     operation: list_owners
-- name: Get Indicators
-  uuid: 7a418899-3993-58c7-81f4-98c954074cd2
-  description: Manually fetch indicators from ThreatConnect. Diagnostic / on-demand.
+- name: Get STIX Indicators
+  uuid: 3b51332d-261c-53d7-b4b3-58f2822ba1fe
+  description: Manually fetch indicators from ThreatConnect's TAXII 2.1 (STIX) server. Diagnostic / on-demand.
   tags:
   - threatconnect
+  - stix
   is_active: true
   trigger_step_id: start
   steps:
   - type: start
     name: Start
     module: alerts
-    route: f5e447cd-5aa0-558d-8371-7c07cd895b7b
+    route: 09f4d1cb-433f-504f-9af8-3f4e8efff8a2
     requires_record: false
-    button_label: 'ThreatConnect: Get Indicators'
-    next: fetch_indicators_bulk
+    button_label: 'ThreatConnect: Get STIX Indicators'
+    next: fetch_stix_indicators_bulk
   - type: connector
-    name: Fetch Indicators Bulk
+    name: Fetch STIX Indicators Bulk
     pickFromTenant: false
     config: ''
     params: {}
     connector: threatconnect
-    operation: fetch_indicators
-- name: '> ThreatConnect > Fetch and Create'
-  uuid: d0757225-b380-5b28-8ad8-2ea96d172f7c
-  description: Fetch and create indicators from ThreatConnect. Called as a child workflow.
+    operation: fetch_stix_indicators
+- name: '> ThreatConnect > STIX Fetch and Create'
+  uuid: b25c605f-d530-5c38-a566-ae6d5d445b34
+  description: Fetch indicators from ThreatConnect's TAXII 2.1 (STIX) server and create them as threat
+    intel feeds. Called as a child workflow.
   tags:
   - dataingestion
   - fetch
   - create
   - threatconnect
+  - stix
   is_active: true
   trigger_step_id: start
   parameters:
@@ -377,14 +381,15 @@ playbooks:
       - File
       value: Any
       tooltip: Restrict ingestion to a single ThreatConnect indicator type. 'Any' pulls all types.
-    - title: Owner Filter (Optional)
+    - title: Collection Filter (Optional)
       name: owner
       type: text
       required: false
       editable: true
       visible: true
-      tooltip: Restrict ingestion to indicators owned by this Source/Community/Organization. Defaults
-        to the connector's Default Organization.
+      tooltip: 'Restrict ingestion to one TAXII collection: an owner (Source/Community/Organization) name
+        or a collection id. Defaults to the connector''s Default Organization, and without one every readable
+        collection is pulled.'
     - title: Ingestion Begin From
       name: last_pull_datetime
       type: datetime
@@ -419,6 +424,7 @@ playbooks:
       - Green
       - White
       value: Amber
+      tooltip: Applied when a STIX indicator carries no TLP marking; a marking on the indicator wins.
     - title: Confidence
       name: confidence
       type: integer
@@ -478,7 +484,7 @@ playbooks:
       next: return_sample_data
     - display: No For Ingestion
       default: true
-      next: fetch_indicators
+      next: fetch_stix_indicators
   - type: set_variable
     name: Return Sample Data
     vars:
@@ -486,7 +492,7 @@ playbooks:
         risk_string\": \"sample\"\n  },\n  {\n    \"value\": \"203.0.113.5\",\n    \"type\": \"ip\",\n\
         \    \"score\": 65,\n    \"risk_string\": \"sample\"\n  }\n]"
   - type: connector
-    name: Fetch Indicators
+    name: Fetch STIX Indicators
     pickFromTenant: false
     config: ''
     params:
@@ -496,12 +502,12 @@ playbooks:
       page_size: 500
       limit: '{{vars.limit}}'
     connector: threatconnect
-    operation: fetch_indicators
+    operation: fetch_stix_indicators
     next: build_feed_list
   - type: set_variable
     name: Build Feed List
     vars:
-      data: '{{vars.steps.Fetch_Indicators.indicators}}'
+      data: '{{vars.steps.Fetch_STIX_Indicators.indicators}}'
       currentPullTime: '{{ arrow.utcnow().isoformat() }}'
     next: create_record
   - type: ingest_bulk_feed
@@ -515,11 +521,12 @@ playbooks:
         else vars.item.type) | resolveRange(vars.type_of_feed_map) }}'
       source: ThreatConnect
       sourceId: '{{vars.item.id}}'
-      tLP: '{% if vars.tlp %}{{ vars.tlp | resolveRange(vars.tlp_map) }}{% else %}None{% endif %}'
+      tLP: '{% if (vars.item.tlp or vars.tlp) %}{{ (vars.item.tlp or vars.tlp) | resolveRange(vars.tlp_map)
+        }}{% else %}None{% endif %}'
       reputation: '{% if vars.reputation %}{{ vars.reputation | resolveRange(vars.reputation_map) }}{%
         else %}None{% endif %}'
-      confidence: '{% if vars.confidence %}{{ vars.confidence }}{% else %}{{ (vars.item.confidence | int)
-        }}{% endif %}'
+      confidence: '{% if vars.item.confidence %}{{ vars.item.confidence }}{% else %}{{ (vars.confidence
+        | int) }}{% endif %}'
       expiresOn: '{% if vars.expiry %}{{ arrow.utcnow().int_timestamp + (vars.expiry | int)*24*60*60 }}{%
         else %}None{% endif %}'
       sourceData: '{{vars.item | toJSON}}'
@@ -537,14 +544,15 @@ playbooks:
     name: Save Result
     vars:
       currentPullTime: '{{vars.currentPullTime}}'
-- name: ThreatConnect > Ingest
-  uuid: 31a22282-653d-5315-8a2f-da3a547baa1d
-  description: Scheduled ingestion orchestrator for ThreatConnect. Maintains per-install LastPullTime
-    macro.
+- name: ThreatConnect > STIX Ingest
+  uuid: 3f4ce155-2ee7-5936-a850-a25d1d2ef478
+  description: Scheduled ingestion orchestrator for ThreatConnect's TAXII 2.1 (STIX) server. Maintains
+    its own per-install LastPullTime macro.
   tags:
   - dataingestion
   - ingest
   - threatconnect
+  - stix
   is_active: true
   trigger_step_id: start
   steps:
@@ -571,19 +579,19 @@ playbooks:
     vars:
       lastPullTime: '{% if (vars.steps.Get_Macro_Value.data[''hydra:member''] | length) > 0 %}{{ vars.steps.Get_Macro_Value.data[''hydra:member''][0].value
         }}{% else %}0{% endif %}'
-    next: fetch_indicators
+    next: fetch_stix_indicators
   - type: workflow_reference
-    name: Fetch Indicators
+    name: Fetch STIX Indicators
     apply_async: false
     child_args:
       lastPullTime: '{{vars.lastPullTime}}'
-    workflowReference: /api/3/workflows/d0757225-b380-5b28-8ad8-2ea96d172f7c
+    workflowReference: /api/3/workflows/b25c605f-d530-5c38-a566-ae6d5d445b34
     next: update_pull_time
   - type: connector
     name: Update Pull Time
     params:
       macro: '{{vars.pullTimeMacro}}'
-      value: '{{vars.steps.Fetch_Indicators.currentPullTime}}'
+      value: '{{vars.steps.Fetch_STIX_Indicators.currentPullTime}}'
     connector: cyops_utilities
     operation: updatemacro
     operationTitle: 'CyOPs: Update Macro'

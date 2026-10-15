@@ -5,6 +5,7 @@
   Copyright end """
 import hmac
 import json
+import re
 import time
 import urllib.parse
 from base64 import b64encode
@@ -94,6 +95,24 @@ def _build_auth_headers(config, endpoint, method='GET'):
     raise ConnectorError('Unsupported Authentication Type: {0}'.format(auth_type))
 
 
+TAXII_MEDIA = 'application/taxii+json;version=2.1'
+TAXII_BASE_PATH = '/api/services/taxii/v2/taxii'
+
+
+def _taxii_headers(config):
+    """HTTP Basic for the TAXII user, as ThreatConnect's TAXII 2.1 server requires.
+
+    The TAXII Server Service App authenticates a dedicated TAXII user with Basic auth and
+    wants ``Accept: application/taxii+json;version=2.1``; the v3 HMAC and token schemes are
+    not accepted there."""
+    user = config.get('taxii_username') or ''
+    password = config.get('taxii_password') or ''
+    if not user or not password:
+        raise ConnectorError('TAXII Username and TAXII Password are required for the STIX/TAXII actions.')
+    token = b64encode('{0}:{1}'.format(user, password).encode('utf-8')).decode()
+    return {'Authorization': 'Basic {0}'.format(token), 'Accept': TAXII_MEDIA}
+
+
 # ---------------------------------------------------------------------------
 # HTTP
 # ---------------------------------------------------------------------------
@@ -114,16 +133,19 @@ def build_pagination_query(params):
 def _failure_text(response):
     """The platform's own message when it sent one, else the generic text for the status code."""
     try:
-        message = response.json().get('message')
+        body = response.json()
+        message = body.get('message') or body.get('description') or body.get('title')
     except (ValueError, AttributeError):
         message = None
     return message or error_msg.get(response.status_code) or response.text[:300]
 
 
-def make_request(base_url, access_id, secret_key, verify_ssl, endpoint, method='GET', config=None, body=None):
+def make_request(base_url, access_id, secret_key, verify_ssl, endpoint, method='GET', config=None, body=None,
+                 taxii=False):
     """Send one request to ``base_url + endpoint`` and return the parsed reply.
 
-    ``body`` (a dict) is sent as JSON. Reads are retried on 429 and 5xx gateway
+    ``taxii`` sends the TAXII user's Basic credentials and the TAXII media type instead of a v3
+    signature or token. ``body`` (a dict) is sent as JSON. Reads are retried on 429 and 5xx gateway
     errors; writes are sent once, so a retry can never create or delete twice.
     """
     try:
@@ -134,7 +156,9 @@ def make_request(base_url, access_id, secret_key, verify_ssl, endpoint, method='
         attempts = MAX_ATTEMPTS if method == 'GET' else 1
         for attempt in range(1, attempts + 1):
             # A fresh signature each attempt: the timestamp is part of what is signed.
-            if config is not None:
+            if taxii:
+                headers = _taxii_headers(config)
+            elif config is not None:
                 headers = _build_auth_headers(config, endpoint, method)
             else:
                 headers = build_hmac_header(access_id, secret_key, endpoint, method)
@@ -177,6 +201,20 @@ def make_request(base_url, access_id, secret_key, verify_ssl, endpoint, method='
 def _call(config, endpoint, method='GET', body=None):
     base_url, access_id, secret_key, default_org, verify_ssl = get_config_data(config)
     return make_request(base_url, access_id, secret_key, verify_ssl, endpoint, method, config=config, body=body)
+
+
+def _taxii_root(config):
+    """The TAXII API root path: the configured base path (App v2.0 by default) plus /tc_taxii."""
+    base = (config.get('taxii_base_path') or TAXII_BASE_PATH).strip().rstrip('/')
+    if not base.startswith('/'):
+        base = '/' + base
+    return base + '/tc_taxii'
+
+
+def _taxii_call(config, path):
+    base_url, access_id, secret_key, default_org, verify_ssl = get_config_data(config)
+    return make_request(base_url, access_id, secret_key, verify_ssl, _taxii_root(config) + path,
+                        config=config, taxii=True)
 
 
 def _blank(value):
@@ -404,6 +442,205 @@ def fetch_indicators(config, params):
 
 
 # ---------------------------------------------------------------------------
+# STIX / TAXII 2.1 (ThreatConnect TAXII Server Service App)
+# ---------------------------------------------------------------------------
+
+# STIX cyber-observable -> the ThreatConnect indicator type the ingestion playbooks key on.
+STIX_TYPES = {'ipv4-addr': 'Address', 'ipv6-addr': 'Address', 'domain-name': 'Host', 'url': 'URL',
+              'email-addr': 'EmailAddress', 'file': 'File'}
+STIX_HASH_ORDER = ('MD5', 'SHA-1', 'SHA-256')
+TLP_MARKING_IDS = {
+    'marking-definition--613f2e26-407d-48c7-9eca-b8e91df99dc9': 'White',
+    'marking-definition--34098fce-860f-48ae-8e50-ebd3cc5e41da': 'Green',
+    'marking-definition--f88d31f6-486f-44da-b317-01333bde0b82': 'Amber',
+    'marking-definition--5e57c739-391a-4eb3-b6be-7d15ca92d5ed': 'Red',
+}
+_COMPARISON = re.compile(r"([a-z0-9-]+):([^\s=]+)\s*=\s*'((?:[^'\\]|\\.)*)'")
+MAX_TAXII_PAGES = 1000
+
+
+def parse_stix_pattern(pattern):
+    """(object type, property, value) for every ``obj:prop = 'value'`` comparison in a STIX pattern."""
+    return [(obj, prop, re.sub(r'\\(.)', r'\1', value)) for obj, prop, value in _COMPARISON.findall(pattern or '')]
+
+
+def _stix_value(pattern):
+    """(ThreatConnect type, summary) for a pattern, or None when it holds nothing the feed ingests.
+
+    A file pattern may carry several hashes; they become ``md5 : sha1 : sha256`` in the order
+    the v3 API uses, which the ingestion playbooks already split on."""
+    comparisons = parse_stix_pattern(pattern)
+    kinds = {STIX_TYPES.get(obj) for obj, _, _ in comparisons}
+    if len(kinds) != 1 or None in kinds:
+        return None
+    kind = kinds.pop()
+    if kind == 'File':
+        hashes = {}
+        for _, prop, value in comparisons:
+            m = re.match(r"hashes\.'?([A-Za-z0-9-]+)'?$", prop)
+            if m:
+                hashes[m.group(1).upper().replace('SHA1', 'SHA-1').replace('SHA256', 'SHA-256')] = value
+        parts = [hashes[h] for h in STIX_HASH_ORDER if h in hashes]
+        return ('File', ' : '.join(parts)) if parts else None
+    return kind, comparisons[0][2]
+
+
+def _tlp_for(indicator, markings):
+    """The TLP name (Red/Amber/Green/White) an indicator's marking references carry, else None."""
+    for ref in indicator.get('object_marking_refs') or []:
+        marking = markings.get(ref) or {}
+        name = (marking.get('definition') or {}).get('tlp') or (TLP_MARKING_IDS.get(ref) or '')
+        if name and str(name).capitalize() in ('Red', 'Amber', 'Green', 'White'):
+            return str(name).capitalize()
+    return None
+
+
+def stix_to_indicator(obj, markings):
+    """One STIX ``indicator`` as the record shape the v3 bulk pull returns, or None to skip it.
+
+    Keeping the v3 shape (id, type, summary, rating, confidence, ownerName, dateAdded,
+    lastModified, description, tags) means the same ingestion mapping serves both feeds."""
+    if obj.get('type') != 'indicator' or obj.get('pattern_type', 'stix') != 'stix':
+        return None
+    found = _stix_value(obj.get('pattern'))
+    if found is None:
+        return None
+    kind, summary = found
+    tc_id = obj.get('x_threatconnect_id')
+    record = {
+        'id': str(tc_id) if tc_id not in (None, '') else obj.get('id'),
+        'stix_id': obj.get('id'),
+        'type': kind,
+        'summary': summary,
+        'rating': float(obj.get('x_threat_rating') or 0),
+        'confidence': int(obj.get('confidence') or 0),
+        'ownerName': obj.get('x_threatconnect_owner'),
+        'dateAdded': obj.get('created') or obj.get('valid_from'),
+        'lastModified': obj.get('modified') or obj.get('created'),
+        'description': obj.get('description') or obj.get('name') or '',
+        'tags': list(obj.get('labels') or []),
+        'tlp': _tlp_for(obj, markings),
+        'threatConnectType': obj.get('x_threatconnect_type'),
+    }
+    return record
+
+
+def _since(value):
+    """A UTC arrow for a pull cursor; blank, 0 and unparseable all mean no cursor."""
+    if _blank(value) or str(value).strip() in ('0', '0.0'):
+        return None
+    try:
+        return arrow.get(str(value).strip())
+    except Exception:
+        try:
+            return arrow.get(float(value))
+        except Exception:
+            raise ConnectorError('Modified Since must be an ISO 8601 datetime, got {0}.'.format(value))
+
+
+def taxii_list_collections(config, params):
+    """The TAXII collections this user can read: one per ThreatConnect owner (GET .../collections)."""
+    return _taxii_call(config, '/collections')
+
+
+def get_collection_options(config, params):
+    """Collection dropdown: the title (owner name) of every readable collection."""
+    collections = (taxii_list_collections(config, params) or {}).get('collections') or []
+    return sorted({c.get('title') for c in collections if c.get('title')}, key=str.lower)
+
+
+def _collection_path(collection):
+    if _blank(collection):
+        raise ConnectorError('Collection is required.')
+    return '/collections/{0}'.format(urllib.parse.quote(str(collection).strip(), safe=''))
+
+
+def taxii_get_objects(config, params):
+    """One page of a collection's STIX objects, as the server sent it (GET .../objects).
+
+    Returns the TAXII envelope: ``objects``, ``more`` and ``next``. Pass ``next`` back to read on."""
+    query = _query([('limit', params.get('limit')), ('next', params.get('next')),
+                    ('added_after', params.get('added_after'))])
+    result = _taxii_call(config, _collection_path(params.get('collection')) + '/objects' + query)
+    # the spec omits "objects" when there is nothing to return
+    result.setdefault('objects', [])
+    return result
+
+
+def _fetch_collection(config, collection, added_after, page_size, markings):
+    """Every indicator object in one collection, following ``more``/``next`` to the end."""
+    objects, cursor = [], None
+    for _ in range(MAX_TAXII_PAGES):
+        query = _query([('limit', page_size), ('next', cursor), ('added_after', added_after)])
+        page = _taxii_call(config, _collection_path(collection) + '/objects' + query) or {}
+        for obj in page.get('objects') or []:
+            if obj.get('type') == 'marking-definition':
+                markings[obj.get('id')] = obj
+            else:
+                objects.append(obj)
+        cursor = page.get('next')
+        if not page.get('more') or _blank(cursor):
+            return objects
+    raise ConnectorError('Stopped after {0} pages of collection {1}.'.format(MAX_TAXII_PAGES, collection))
+
+
+def fetch_stix_indicators(config, params):
+    """Bulk-pull indicators from ThreatConnect's TAXII 2.1 server and return them in the v3 record shape.
+
+    Used by scheduled STIX ingestion. ``owner`` names one collection (an owner name or a collection
+    id); blank means the Default Organization, and without one, every readable collection.
+
+    ``added_after`` is sent so a server that implements it can skip old objects, but ThreatConnect
+    does not document it, so the cursor is ALSO applied here to each object's ``modified`` time:
+    a server that ignores the parameter costs bandwidth, never duplicates or a missed update.
+    Patterns the feed cannot ingest (ASN, mutex, registry key...) are counted in ``skipped``."""
+    wanted_type = (params.get('indicator_type') or 'Any').strip()
+    owner = (params.get('owner') or config.get('api_default_org') or '').strip()
+    cursor = _since(params.get('modified_since'))
+    try:
+        page_size = max(1, min(int(params.get('page_size') or 500), 1000))
+    except (TypeError, ValueError):
+        page_size = 500
+    try:
+        total_limit = int(params.get('limit') or 0) or None
+    except (TypeError, ValueError):
+        total_limit = None
+
+    if owner:
+        collections = [owner]
+    else:
+        collections = [c.get('id') for c in (taxii_list_collections(config, {}) or {}).get('collections') or []
+                       if c.get('can_read', True) and c.get('id')]
+    # added_after is exclusive in TAXII and the cursor is inclusive here, so ask for one millisecond earlier.
+    added_after = (cursor.shift(microseconds=-1000).to('utc').strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z'
+                   if cursor else None)
+
+    indicators, skipped, truncated, seen = [], 0, False, set()
+    markings = {}
+    for collection in collections:
+        for obj in _fetch_collection(config, collection, added_after, page_size, markings):
+            record = stix_to_indicator(obj, markings)
+            if record is None:
+                skipped += 1
+                continue
+            if wanted_type != 'Any' and record['type'] != wanted_type:
+                continue
+            if cursor and record['lastModified'] and arrow.get(record['lastModified']) < cursor:
+                continue
+            if record['stix_id'] in seen:
+                continue
+            seen.add(record['stix_id'])
+            indicators.append(record)
+            if total_limit and len(indicators) >= total_limit:
+                truncated = True
+                break
+        if truncated:
+            break
+    return {'indicators': indicators, 'count': len(indicators), 'truncated': truncated,
+            'skipped': skipped, 'collections': len(collections)}
+
+
+# ---------------------------------------------------------------------------
 # Indicators: read, create, update, delete
 # ---------------------------------------------------------------------------
 
@@ -569,4 +806,8 @@ operations = {
     'get_group': get_group,
     'list_tags': list_tags,
     'get_owner_options': get_owner_options,
+    'taxii_list_collections': taxii_list_collections,
+    'taxii_get_objects': taxii_get_objects,
+    'fetch_stix_indicators': fetch_stix_indicators,
+    'get_collection_options': get_collection_options,
 }

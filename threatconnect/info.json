@@ -1,8 +1,8 @@
 {
   "name": "threatconnect",
   "label": "ThreatConnect",
-  "version": "2.2.1",
-  "description": "ThreatConnect connector for the v3 REST API. Look up indicator reputation, list, create, update and delete indicators, flag false positives and record observations, browse owners, groups and tags, pull indicators in bulk, and run scheduled threat-intel ingestion. Any other endpoint can be called with Invoke ThreatConnect REST API, which signs the request for you. Authenticate using HMAC (Access ID + Secret Key) or an API token (PAT). <br/><br/>Ingestion has a dependency on the <a href=\"/content-hub/all-content/?contentType=solutionpack&amp;tag=ThreatIntelManagement\" target=\"_blank\" rel=\"noopener\">Threat Intel Management Solution Pack</a>.",
+  "version": "2.3.0",
+  "description": "ThreatConnect connector for the v3 REST API. Look up indicator reputation, list, create, update and delete indicators, flag false positives and record observations, browse owners, groups and tags, pull indicators in bulk, and run scheduled threat-intel ingestion. Any other endpoint can be called with Invoke ThreatConnect REST API, which signs the request for you. Pull STIX 2.1 indicators from the ThreatConnect TAXII server for ingestion. Authenticate using HMAC (Access ID + Secret Key) or an API token (PAT). <br/><br/>Ingestion has a dependency on the <a href=\"/content-hub/all-content/?contentType=solutionpack&amp;tag=ThreatIntelManagement\" target=\"_blank\" rel=\"noopener\">Threat Intel Management Solution Pack</a>.",
   "publisher": "Fortinet",
   "cs_approved": true,
   "cs_compatible": true,
@@ -218,6 +218,35 @@
         "name": "verify",
         "value": true,
         "description": "Verify the TLS certificate of the ThreatConnect server. Default true."
+      },
+      {
+        "title": "TAXII Username",
+        "name": "taxii_username",
+        "type": "text",
+        "required": false,
+        "editable": true,
+        "visible": true,
+        "description": "The TAXII user for the ThreatConnect TAXII Server Service App. Needed only for the STIX/TAXII actions and STIX ingestion; HTTP Basic is used there, not the HMAC or token above."
+      },
+      {
+        "title": "TAXII Password",
+        "name": "taxii_password",
+        "type": "password",
+        "required": false,
+        "editable": true,
+        "visible": true,
+        "description": "Password of the TAXII user."
+      },
+      {
+        "title": "TAXII Base Path",
+        "name": "taxii_base_path",
+        "type": "text",
+        "required": false,
+        "editable": true,
+        "visible": true,
+        "value": "/api/services/taxii/v2/taxii",
+        "tooltip": "Path of the TAXII service on the server: /api/services/taxii/v2/taxii for TAXII Server App 2.0 (default), /api/services/taxii/v1 for App 1.0.",
+        "description": "Path of the TAXII service on the server."
       }
     ]
   },
@@ -1761,6 +1790,199 @@
       "annotation": "get_owner_options",
       "category": "investigation",
       "description": "Populates owner dropdowns: every owner the credentials can see, as Name (Type) / name pairs.",
+      "enabled": true,
+      "visible": false,
+      "parameters": [],
+      "output_schema": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {}
+        }
+      }
+    },
+    {
+      "operation": "taxii_list_collections",
+      "title": "List TAXII Collections",
+      "annotation": "taxii_list_collections",
+      "category": "investigation",
+      "description": "Lists the STIX collections the TAXII user can read. ThreatConnect serves one collection per owner (organization or source).",
+      "enabled": true,
+      "parameters": [],
+      "output_schema": {
+        "collections": [
+          {
+            "id": "",
+            "title": "",
+            "description": "",
+            "can_read": true,
+            "can_write": false,
+            "media_types": [
+              ""
+            ],
+            "x_tql": ""
+          }
+        ]
+      }
+    },
+    {
+      "operation": "taxii_get_objects",
+      "title": "Get TAXII Objects",
+      "annotation": "taxii_get_objects",
+      "category": "investigation",
+      "description": "Reads one page of STIX objects from a collection, exactly as the TAXII server sends them. Pass the returned next value back in to read on.",
+      "enabled": true,
+      "parameters": [
+        {
+          "title": "Collection",
+          "name": "collection",
+          "type": "select",
+          "required": true,
+          "editable": true,
+          "visible": true,
+          "description": "A TAXII collection: a ThreatConnect owner's name, or the collection id.",
+          "tooltip": "A TAXII collection: a ThreatConnect owner's name, or the collection id.",
+          "apiOperation": "get_collection_options"
+        },
+        {
+          "title": "Added After",
+          "name": "added_after",
+          "type": "datetime",
+          "required": false,
+          "editable": true,
+          "visible": true,
+          "description": "Only objects added after this time. ThreatConnect does not document this filter, so a server may ignore it."
+        },
+        {
+          "title": "Limit",
+          "name": "limit",
+          "type": "integer",
+          "required": false,
+          "editable": true,
+          "visible": true,
+          "value": 100,
+          "description": "Objects per page."
+        },
+        {
+          "title": "Next",
+          "name": "next",
+          "type": "text",
+          "required": false,
+          "editable": true,
+          "visible": true,
+          "description": "The next value from the previous page."
+        }
+      ],
+      "output_schema": {
+        "more": false,
+        "next": "",
+        "objects": [
+          {
+            "type": "",
+            "id": "",
+            "spec_version": ""
+          }
+        ]
+      }
+    },
+    {
+      "operation": "fetch_stix_indicators",
+      "title": "Fetch STIX Indicators (Bulk)",
+      "annotation": "fetch_stix_indicators",
+      "category": "investigation",
+      "description": "Bulk-pulls indicators from the ThreatConnect TAXII 2.1 server, follows every page, and returns them in the same record shape as Fetch Indicators (Bulk). Used by scheduled STIX ingestion and available on-demand.",
+      "enabled": true,
+      "parameters": [
+        {
+          "title": "Indicator Type",
+          "name": "indicator_type",
+          "type": "select",
+          "options": [
+            "Any",
+            "Address",
+            "Host",
+            "URL",
+            "EmailAddress",
+            "File"
+          ],
+          "value": "Any",
+          "required": false,
+          "editable": true,
+          "visible": true,
+          "description": "Restrict the pull to a single ThreatConnect indicator type."
+        },
+        {
+          "title": "Collection",
+          "name": "owner",
+          "type": "select",
+          "required": false,
+          "editable": true,
+          "visible": true,
+          "description": "A TAXII collection (an owner name or collection id). Blank uses the Default Organization, and without one every readable collection.",
+          "tooltip": "A TAXII collection (an owner name or collection id). Blank uses the Default Organization, and without one every readable collection.",
+          "apiOperation": "get_collection_options"
+        },
+        {
+          "title": "Modified Since",
+          "name": "modified_since",
+          "type": "datetime",
+          "required": false,
+          "editable": true,
+          "visible": true,
+          "description": "ISO 8601 datetime; only indicators modified at or after this time are returned. Applied by the connector as well as sent to the server."
+        },
+        {
+          "title": "Page Size",
+          "name": "page_size",
+          "type": "integer",
+          "required": false,
+          "editable": true,
+          "visible": true,
+          "value": 500,
+          "description": "Objects fetched per TAXII page."
+        },
+        {
+          "title": "Limit (Optional)",
+          "name": "limit",
+          "type": "integer",
+          "required": false,
+          "editable": true,
+          "visible": true,
+          "description": "Cap total indicators returned across all pages."
+        }
+      ],
+      "output_schema": {
+        "indicators": [
+          {
+            "id": "",
+            "stix_id": "",
+            "type": "",
+            "summary": "",
+            "rating": 0,
+            "confidence": 0,
+            "ownerName": "",
+            "dateAdded": "",
+            "lastModified": "",
+            "description": "",
+            "tags": [
+              ""
+            ],
+            "tlp": "",
+            "threatConnectType": ""
+          }
+        ],
+        "count": 0,
+        "truncated": false,
+        "skipped": 0,
+        "collections": 0
+      }
+    },
+    {
+      "operation": "get_collection_options",
+      "title": "Get Collection Options",
+      "annotation": "get_collection_options",
+      "category": "investigation",
+      "description": "Populates collection dropdowns: the name of every collection the TAXII user can read.",
       "enabled": true,
       "visible": false,
       "parameters": [],

@@ -1,3 +1,17 @@
+#### The following enhancements have been made to the ThreatConnect connector in version 2.3.0:
+
+##### What's Added
+
+- STIX 2.1 ingestion from ThreatConnect's TAXII server. New operations: **List TAXII Collections**, **Get TAXII Objects** and **Fetch STIX Indicators (Bulk)**. The bulk pull follows every page, reads each indicator's STIX pattern, and returns the same record shape as **Fetch Indicators (Bulk)**, so both feeds share one ingestion mapping.
+- New configuration fields **TAXII Username**, **TAXII Password** and **TAXII Base Path**. The TAXII server authenticates a dedicated TAXII user with HTTP Basic, so these are separate from the HMAC or token used for the v3 API. The base path defaults to the TAXII Server App 2.0 location, `/api/services/taxii/v2/taxii`; set `/api/services/taxii/v1` for App 1.0.
+- Sample playbooks: **Get STIX Indicators**, **> ThreatConnect > STIX Fetch and Create** and **ThreatConnect > STIX Ingest**. STIX Ingest keeps a last-pull-time macro and moves it forward after each pull. An indicator's own TLP marking and confidence are used when it carries them; the configured values apply otherwise.
+
+##### Notes
+
+- ThreatConnect does not document the TAXII `added_after` filter. It is sent, and the connector also applies the cursor to each indicator's modified time, so a server that ignores it costs bandwidth, not duplicates or missed updates.
+- Patterns the feed cannot ingest (ASN, mutex, registry key and other types) are skipped and counted in `skipped`.
+- Ingestion is STIX only: the v3 REST ingest playbooks (**Get Indicators**, **> ThreatConnect > Fetch and Create**, **ThreatConnect > Ingest**) are removed. **Fetch Indicators (Bulk)** is still available as an action. Schedule **ThreatConnect > STIX Ingest** for a recurring pull.
+
 #### The following enhancements have been made to the ThreatConnect connector in version 2.2.1:
 - Fixed: the Owner dropdown showed "[object Object]" for every entry in the step editor. It now lists the owner names.
 

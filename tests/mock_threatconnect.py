@@ -51,6 +51,23 @@ Response fidelity (per the v3 retrieve docs):
     with {"status": "Error", ...} for an unknown value,
   * error statuses are "Error" (never "Failure"), matching the docs' wording.
 
+TAXII 2.1 / STIX (ThreatConnect TAXII Server Service App; docs.threatconnect.com
+> REST API > TAXII 2.1). The same indicator corpus, served as STIX 2.1 under
+``/api/services/taxii/v2/taxii`` (App v2.0) and ``/api/services/taxii/v1`` (App
+v1.0, which adds ``/manifest``). HTTP Basic with a TAXII user, and
+``Accept: application/taxii+json;version=2.1``; neither the HMAC nor the token
+scheme is accepted there, and Basic is not accepted on /api/v3:
+
+  /taxii2                                         discovery
+  /tc_taxii                                       API root
+  /tc_taxii/collections[/{id|ownerName}]          one collection per owner
+  /tc_taxii/collections/{c}/objects?limit&next    {more, next, objects}
+  /tc_taxii/collections/{c}/manifest              v1 prefix only
+
+``added_after`` is NOT documented by ThreatConnect, so the mock can behave either
+way (``--taxii-no-added-after`` makes it ignore the parameter) and a consumer
+must not depend on it.
+
 Stdlib only. Growable (``--grow-every``) so a scheduled incremental pull has
 new records to find; growth is in-memory and resets on restart, which a
 tolerant feed consumer must survive.
@@ -66,7 +83,8 @@ import re
 import threading
 import time
 import uuid
-from base64 import b64encode
+import zlib
+from base64 import b64decode, b64encode
 from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -137,6 +155,93 @@ def summary_for(body: dict) -> str | None:
     return body.get(field) if field else None
 
 
+# -- STIX / TAXII --------------------------------------------------------------
+TAXII_MEDIA = "application/taxii+json;version=2.1"
+TAXII_PREFIXES = ("/api/services/taxii/v2/taxii", "/api/services/taxii/v1")
+TAXII_V1 = "/api/services/taxii/v1"
+TAXII_DEFAULT_PAGE = 100
+TAXII_PAGE_CAP = 1000
+NS_TAXII = uuid.uuid5(uuid.NAMESPACE_DNS, "fsr-lab-threatconnect-taxii")
+# The fixed STIX 2.1 TLP marking-definition ids (OASIS STIX 2.1 section 7.2.1.4).
+TLP_MARKINGS = {
+    "white": "marking-definition--613f2e26-407d-48c7-9eca-b8e91df99dc9",
+    "green": "marking-definition--34098fce-860f-48ae-8e50-ebd3cc5e41da",
+    "amber": "marking-definition--f88d31f6-486f-44da-b317-01333bde0b82",
+    "red": "marking-definition--5e57c739-391a-4eb3-b6be-7d15ca92d5ed",
+}
+TLP_ORDER = ("white", "green", "amber", "red")
+HASH_NAMES = {32: "MD5", 40: "SHA-1", 64: "SHA-256"}
+STIX_OBJECT = {"Address": None, "Host": "domain-name", "URL": "url", "EmailAddress": "email-addr"}
+
+
+def _stix_quote(value: str) -> str:
+    return value.replace("\\", "\\\\").replace("'", "\\'")
+
+
+def _iso_ms(value: str | None) -> str:
+    ts = _parse_dt(value or "")
+    if ts is None:
+        ts = time.time()
+    return datetime.fromtimestamp(ts, timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.") + \
+        f"{int((ts % 1) * 1000):03d}Z"
+
+
+def stix_pattern(row: dict) -> str | None:
+    """The STIX pattern for a ThreatConnect indicator, or None for a type with no mapping."""
+    kind, summary = row.get("type"), str(row.get("summary") or "")
+    if kind == "File":
+        parts = []
+        for h in (x.strip() for x in summary.split(" : ")):
+            name = HASH_NAMES.get(len(h))
+            if name:
+                parts.append(f"file:hashes.'{name}' = '{_stix_quote(h)}'")
+        return "[" + " AND ".join(parts) + "]" if parts else None
+    if kind == "Address":
+        obj = "ipv6-addr" if ":" in summary else "ipv4-addr"
+    else:
+        obj = STIX_OBJECT.get(kind)
+    return f"[{obj}:value = '{_stix_quote(summary)}']" if obj else None
+
+
+def tlp_for(row: dict) -> str:
+    """A stable TLP per indicator: the corpus carries none, and a feed consumer must read one."""
+    return TLP_ORDER[zlib.crc32(str(row.get("id")).encode()) % 4]
+
+
+def marking_definition(name: str) -> dict:
+    return {"type": "marking-definition", "spec_version": "2.1", "id": TLP_MARKINGS[name],
+            "created": "2017-01-20T00:00:00.000Z", "name": f"TLP:{name.upper()}",
+            "definition_type": "tlp", "definition": {"tlp": name}}
+
+
+def stix_indicator(row: dict, tcid) -> dict | None:
+    pattern = stix_pattern(row)
+    if pattern is None:
+        return None
+    obj = {
+        "type": "indicator", "spec_version": "2.1",
+        "id": "indicator--" + str(uuid.uuid5(NS_TAXII, str(row["id"]))),
+        "created": _iso_ms(row.get("dateAdded")), "modified": _iso_ms(row.get("lastModified")),
+        "name": row.get("summary"), "pattern": pattern, "pattern_type": "stix", "pattern_version": "2.1",
+        "valid_from": _iso_ms(row.get("dateAdded")),
+        "confidence": int(row.get("confidence") or 0),
+        "object_marking_refs": [TLP_MARKINGS[tlp_for(row)]],
+        "x_threatconnect_id": tcid,
+        "x_threatconnect_owner": row.get("ownerName"),
+        "x_threatconnect_type": row.get("type"),
+        "x_threat_rating": int(round(float(row.get("rating") or 0))),
+    }
+    if row.get("description"):
+        obj["description"] = row["description"]
+    if row.get("tags"):
+        obj["labels"] = sorted({str(t) for t in row["tags"]})
+    return obj
+
+
+def collection_id(owner: str) -> str:
+    return str(uuid.uuid5(NS_TAXII, "collection:" + owner))
+
+
 class Dataset:
     """Thread-safe indicator store with TQL-lite filtering."""
 
@@ -144,6 +249,20 @@ class Dataset:
         self.rows = list(rows)
         self.deleted: list[dict] = []
         self.next_id = 100000
+        # ThreatConnect's own ids are integers (x_threatconnect_id); the corpus keys rows by uuid.
+        self.tcids: dict[str, int] = {}
+        for r in self.rows:
+            self.tcid(r)
+
+    def tcid(self, row: dict) -> int:
+        if isinstance(row.get("id"), int):
+            return row["id"]
+        with _GROW_LOCK:
+            return self.tcids.setdefault(str(row.get("id")), 1000 + len(self.tcids))
+
+    def owners(self) -> list[str]:
+        with _GROW_LOCK:
+            return sorted({r.get("ownerName") for r in self.rows if r.get("ownerName")})
 
     def add(self, row: dict) -> None:
         with _GROW_LOCK:
@@ -176,6 +295,7 @@ class Dataset:
             # the lock guards list mutation only.
             with _GROW_LOCK:
                 self.rows.append(row)
+            self.tcid(row)
 
     def query(self, type_: str | None, owner: str | None,
               modified_since: str | None) -> list[dict]:
@@ -217,6 +337,9 @@ class Handler(BaseHTTPRequestHandler):
     access_id: str
     secret_key: str
     pat: str
+    taxii_user: str = "test-taxii"
+    taxii_pass: str = "test-taxii-pass"  # pragma: allowlist secret
+    taxii_added_after: bool = True
     no_auth: bool = False
 
     server_version = "TC-Mock/1.0"
@@ -259,6 +382,10 @@ class Handler(BaseHTTPRequestHandler):
 
     # -- http ---------------------------------------------------------------
     def do_GET(self):
+        taxii = urlparse(self.path)
+        for prefix in TAXII_PREFIXES:
+            if taxii.path.startswith(prefix + "/"):
+                return self._taxii(prefix, taxii)
         if not self._authed("GET"):
             return self._send(401, {"status": "Error", "message": "Unauthorized"})
         parsed = urlparse(self.path)
@@ -333,6 +460,98 @@ class Handler(BaseHTTPRequestHandler):
             "resultCount": len(page),
             "resultStart": start,
         })
+
+
+    # -- TAXII 2.1 --------------------------------------------------------------
+    def _taxii_error(self, code: int, title: str):
+        extra = {"WWW-Authenticate": 'Basic realm="ThreatConnect TAXII"'} if code == 401 else None
+        self._send(code, {"title": title, "http_status": str(code)}, TAXII_MEDIA, extra)
+
+    def _taxii_authed(self) -> bool:
+        if self.no_auth:
+            return True
+        want = "Basic " + b64encode(f"{self.taxii_user}:{self.taxii_pass}".encode()).decode()
+        return hmac.compare_digest(self.headers.get("Authorization", ""), want)
+
+    def _taxii(self, prefix: str, parsed):
+        if not self._taxii_authed():
+            return self._taxii_error(401, "Unauthorized")
+        if "application/taxii+json" not in self.headers.get("Accept", ""):
+            return self._taxii_error(
+                406, "Not Acceptable: send Accept: application/taxii+json;version=2.1")
+        rel = parsed.path[len(prefix):].rstrip("/")
+        q = {k: v[-1] for k, v in parse_qs(parsed.query).items()}
+        host = self.headers.get("Host", "localhost")
+        origin = f"{self.headers.get('X-Forwarded-Proto', 'https')}://{host}"
+        root = f"{origin}{prefix}/tc_taxii"
+        if rel == "/taxii2":
+            return self._send(200, {"title": "ThreatConnect TAXII 2.1 Server", "api_roots": [root],
+                                    "default": root}, TAXII_MEDIA)
+        if rel == "/tc_taxii":
+            return self._send(200, {"title": "ThreatConnect TAXII 2.1 Server",
+                                    "description": "Lab mock of the ThreatConnect TAXII Server Service App",
+                                    "versions": [TAXII_MEDIA], "max_content_length": 104857600},
+                              TAXII_MEDIA)
+        if rel == "/tc_taxii/collections":
+            return self._send(200, {"collections": [self._collection(o) for o in self.ds.owners()]},
+                              TAXII_MEDIA)
+        m = re.match(r"^/tc_taxii/collections/([^/]+)(?:/(objects|manifest))?$", rel)
+        if not m:
+            return self._taxii_error(404, f"Unknown endpoint: {parsed.path}")
+        owner = self._owner_for(unquote(m.group(1)))
+        if owner is None:
+            return self._taxii_error(404, f"Collection {unquote(m.group(1))} not found")
+        if not m.group(2):
+            return self._send(200, self._collection(owner), TAXII_MEDIA)
+        if m.group(2) == "manifest" and prefix != TAXII_V1:
+            return self._taxii_error(404, "manifest is available on App v1.0 only")
+        self._taxii_objects(owner, q, manifest=m.group(2) == "manifest")
+
+    def _owner_for(self, ident: str) -> str | None:
+        for o in self.ds.owners():
+            if ident == collection_id(o) or ident.casefold() == o.casefold():
+                return o
+        return None
+
+    def _collection(self, owner: str) -> dict:
+        return {"id": collection_id(owner), "title": owner, "description": f"Indicators owned by {owner}",
+                "can_read": True, "can_write": False, "media_types": [TAXII_MEDIA],
+                "x_tql": f'(ownerName EQ "{owner}") AND typeName in ("Address","EmailAddress","File","Host","URL")'}
+
+    def _taxii_objects(self, owner: str, q: dict, manifest: bool):
+        try:
+            limit = max(1, min(int(q.get("limit", TAXII_DEFAULT_PAGE)), TAXII_PAGE_CAP))
+            start = max(0, int(q.get("next", 0)))
+        except ValueError:
+            return self._taxii_error(400, "limit and next must be integers")
+        rows = self.ds.query(None, owner, None)
+        if self.taxii_added_after and q.get("added_after"):
+            cutoff = _parse_dt(q["added_after"])
+            if cutoff is None:
+                return self._taxii_error(400, "added_after must be a timestamp")
+            rows = [r for r in rows if (_parse_dt(r.get("lastModified", "")) or 0) > cutoff]
+        rows.sort(key=lambda r: (r.get("lastModified", ""), str(r.get("id"))))
+        page = rows[start:start + limit]
+        more = start + limit < len(rows)
+        if manifest:
+            out = [{"id": "indicator--" + str(uuid.uuid5(NS_TAXII, str(r["id"]))),
+                    "version": _iso_ms(r.get("lastModified")), "date_added": _iso_ms(r.get("lastModified")),
+                    "media_types": TAXII_MEDIA} for r in page]
+        else:
+            indicators = [i for i in (stix_indicator(r, self.ds.tcid(r)) for r in page) if i]
+            markings, seen = [], set()
+            for i in indicators:
+                for ref in i["object_marking_refs"]:
+                    if ref not in seen:
+                        seen.add(ref)
+                        markings.append(marking_definition(next(k for k, v in TLP_MARKINGS.items() if v == ref)))
+            out = markings + indicators
+        body: dict = {"more": more}
+        if more:
+            body["next"] = str(start + limit)
+        if out:  # the spec omits "objects" when there is nothing to return
+            body["objects"] = out
+        self._send(200, body, TAXII_MEDIA)
 
     # -- writes ---------------------------------------------------------------
     def _body(self) -> dict | None:
@@ -476,10 +695,13 @@ class Handler(BaseHTTPRequestHandler):
             return self._send(200, {"status": "Success", "data": hit})
         self._send(200, {"status": "Success", "data": tags, "count": len(tags)})
 
-    def _send(self, code: int, payload: dict):
+    def _send(self, code: int, payload: dict, ctype: str = "application/json",
+              headers: dict | None = None):
         body = json.dumps(payload).encode()
         self.send_response(code)
-        self.send_header("Content-Type", "application/json")
+        self.send_header("Content-Type", ctype)
+        for k, v in (headers or {}).items():
+            self.send_header(k, v)
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
         self.wfile.write(body)
@@ -491,6 +713,8 @@ def main() -> int:
     p.add_argument("--port", type=int, default=8080)
     p.add_argument("--dataset", default=str(Path(__file__).parent / "fixtures.json"))
     p.add_argument("--no-auth", action="store_true")
+    p.add_argument("--taxii-no-added-after", action="store_true",
+                   help="ignore the TAXII added_after parameter, as a server that does not implement it")
     p.add_argument("--grow-every", type=int, default=0,
                    help="seconds between batches of new indicators (0 = static)")
     p.add_argument("--grow-count", type=int, default=10)
@@ -501,6 +725,9 @@ def main() -> int:
     Handler.access_id = os.environ.get("TC_ACCESS_ID", "test-access-id")
     Handler.secret_key = os.environ.get("TC_SECRET_KEY", "test-secret-key")
     Handler.pat = os.environ.get("TC_PAT", "test-pat")
+    Handler.taxii_user = os.environ.get("TC_TAXII_USER", "test-taxii")
+    Handler.taxii_pass = os.environ.get("TC_TAXII_PASS", "test-taxii-pass")  # pragma: allowlist secret
+    Handler.taxii_added_after = not a.taxii_no_added_after
     Handler.no_auth = a.no_auth
     total = Handler.ds.count()
 
@@ -517,7 +744,7 @@ def main() -> int:
 
     httpd = ThreadingHTTPServer((a.host, a.port), Handler)
     print(f"ThreatConnect mock: http://{a.host}:{a.port} ({total} indicators, "
-          f"auth={'off' if a.no_auth else 'HMAC|Bearer'}, "
+          f"auth={'off' if a.no_auth else 'HMAC|Bearer|TAXII-Basic'}, "
           f"grow={'every ' + str(a.grow_every) + 's' if a.grow_every else 'static'})",
           flush=True)
     print("FSR connector config -> api_base_url: https://<proxy-host>:<port> "
