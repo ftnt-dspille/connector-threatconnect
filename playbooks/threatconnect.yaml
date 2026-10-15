@@ -107,7 +107,7 @@ playbooks:
       output_data: '{{vars.result}}'
     params:
       owner: ''
-      indicator: demo@test.com
+      indicator: user@example.com
       includeAdditional: true
     connector: threatconnect
     operation: hunt_email
@@ -135,7 +135,7 @@ playbooks:
       output_data: '{{vars.result}}'
     params:
       owner: ''
-      indicator: http://midiasomeluz.com.br/site/wp-includes/pomo/docx/
+      indicator: http://example.com/path/
       includeAdditional: true
     connector: threatconnect
     operation: hunt_url

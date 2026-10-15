@@ -455,13 +455,13 @@ TLP_MARKING_IDS = {
     'marking-definition--f88d31f6-486f-44da-b317-01333bde0b82': 'Amber',
     'marking-definition--5e57c739-391a-4eb3-b6be-7d15ca92d5ed': 'Red',
 }
-_COMPARISON = re.compile(r"([a-z0-9-]+):([^\s=]+)\s*=\s*'((?:[^'\\]|\\.)*)'")
+_COMPARISON = r"([a-z0-9-]+):([^\s=]+)\s*=\s*'((?:[^'\\]|\\.)*)'"
 MAX_TAXII_PAGES = 1000
 
 
 def parse_stix_pattern(pattern):
     """(object type, property, value) for every ``obj:prop = 'value'`` comparison in a STIX pattern."""
-    return [(obj, prop, re.sub(r'\\(.)', r'\1', value)) for obj, prop, value in _COMPARISON.findall(pattern or '')]
+    return [(obj, prop, re.sub(r'\\(.)', r'\1', value)) for obj, prop, value in re.findall(_COMPARISON, pattern or '')]
 
 
 def _stix_value(pattern):
