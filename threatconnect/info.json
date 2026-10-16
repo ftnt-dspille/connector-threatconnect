@@ -226,7 +226,7 @@
         "required": false,
         "editable": true,
         "visible": true,
-        "description": "The TAXII user for the ThreatConnect TAXII Server Service App. Needed only for the STIX/TAXII actions and STIX ingestion; HTTP Basic is used there, not the HMAC or token above."
+        "description": "The TAXII user for ThreatConnect's TAXII Server Service App. Needed only for the STIX/TAXII actions and STIX ingestion; HTTP Basic is used there, not the HMAC or token above."
       },
       {
         "title": "TAXII Password",
@@ -235,7 +235,7 @@
         "required": false,
         "editable": true,
         "visible": true,
-        "description": "Password of the TAXII user."
+        "description": "Password of the TAXII user named above, sent with HTTP Basic authentication to the TAXII server."
       },
       {
         "title": "TAXII Base Path",
@@ -246,7 +246,7 @@
         "visible": true,
         "value": "/api/services/taxii/v2/taxii",
         "tooltip": "Path of the TAXII service on the server: /api/services/taxii/v2/taxii for TAXII Server App 2.0 (default), /api/services/taxii/v1 for App 1.0.",
-        "description": "Path of the TAXII service on the server."
+        "description": "Path of the TAXII service on the ThreatConnect server, which depends on the TAXII Server App version."
       }
     ]
   },
